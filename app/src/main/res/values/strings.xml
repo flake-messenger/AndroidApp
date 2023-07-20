@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Flake</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="lorem_ipsum_md">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut aliquam nunc vitae tincidunt facilisis. Nunc urna ligula, finibus ac mattis nec, commodo at dui. Sed et volutpat felis, sit amet ultricies lectus. Pellentesque eget dui.</string>
 </resources>
