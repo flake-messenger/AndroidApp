@@ -30,6 +30,7 @@ import java.util.Date
 
 class MessagesFragment : Fragment() {
     private var channelId = ""
+    private var messages = java.util.ArrayList<JSONObject>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,7 +52,10 @@ class MessagesFragment : Fragment() {
 
             view.findViewById<RecyclerView>(R.id.messages_list).apply {
                 layoutManager = LinearLayoutManager(activity)
-                adapter = MessagesRecyclerAdapter(getMessages(channelId))
+                (layoutManager as LinearLayoutManager).stackFromEnd = false
+                (layoutManager as LinearLayoutManager).reverseLayout = true
+                messages = getMessages(channelId)
+                adapter = MessagesRecyclerAdapter(messages)
             }
 
             val sendButton = view.findViewById<Button>(R.id.send_button)
@@ -70,20 +74,23 @@ class MessagesFragment : Fragment() {
                                 setBody(json.toString())
                                 contentType(ContentType.Application.Json)
                             }
-                        if (request.status == HttpStatusCode.OK) {messageInput.setText("")}
-                    }
-                    view.findViewById<RecyclerView>(R.id.messages_list).apply {
-                        layoutManager = LinearLayoutManager(activity)
-                        adapter = MessagesRecyclerAdapter(getMessages(channelId))
+                        if (request.status == HttpStatusCode.OK) {
+                            messages.add(0, JSONObject(request.bodyAsText()))
+                            messageInput.setText("")
+                            view.findViewById<RecyclerView>(R.id.messages_list).apply {
+                                adapter!!.notifyItemInserted(0)
+                                smoothScrollToPosition(0)
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun getMessages(channelId: String): JSONArray {
+    private fun getMessages(channelId: String): ArrayList<JSONObject> {
         val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
-        var messages = JSONArray()
+        var messages = ArrayList<JSONObject>()
 
         runBlocking {
             val client = HttpClient()
@@ -91,7 +98,7 @@ class MessagesFragment : Fragment() {
                 client.get("https://flake.coders-squad.com/api/v1/dev/channels/$channelId/messages")
                 {headers { bearerAuth(token) }}
             if (request.status == HttpStatusCode.OK) {
-                messages = JSONArray(request.bodyAsText())
+                messages = JSONArray(request.bodyAsText()).toArrayList()
             }
         }
 
@@ -99,7 +106,17 @@ class MessagesFragment : Fragment() {
     }
 }
 
-class MessagesRecyclerAdapter(private val messages: JSONArray) : RecyclerView.Adapter<MessagesRecyclerAdapter.MyViewHolder>() {
+fun JSONArray.toArrayList(): ArrayList<JSONObject> {
+    val list = arrayListOf<JSONObject>()
+    for (i in 0 until this.length()) {
+        list.add(this.getJSONObject(i))
+    }
+
+    return list
+}
+
+class MessagesRecyclerAdapter(private val messages: ArrayList<JSONObject>) : RecyclerView.Adapter<MessagesRecyclerAdapter.MyViewHolder>() {
+
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val timeView: TextView = itemView.findViewById(R.id.time_view)
         val nicknameView: TextView = itemView.findViewById(R.id.author_name_view)
@@ -113,10 +130,10 @@ class MessagesRecyclerAdapter(private val messages: JSONArray) : RecyclerView.Ad
         return MyViewHolder(itemView)
     }
 
-    override fun getItemCount() = messages.length()
+    override fun getItemCount() = messages.size
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val message = messages.getJSONObject(position)
+        val message = messages[position]
         val date = SimpleDateFormat.getTimeInstance()
             .format(Date(message.getLong("sent_at")))
         holder.timeView.text = date

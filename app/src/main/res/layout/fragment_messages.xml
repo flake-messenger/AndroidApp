@@ -14,10 +14,15 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/messages_list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:scrollIndicators="right"
             app:layout_constraintBottom_toTopOf="@+id/send_button"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:reverseLayout="true"
+            android:clipToPadding="true"
+            app:stackFromEnd="false"
             tools:itemCount="3"
             tools:listitem="@layout/recyclerview_message" />
 
