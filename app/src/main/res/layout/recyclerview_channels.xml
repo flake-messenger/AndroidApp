@@ -12,7 +12,7 @@
         android:gravity="center_vertical"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="TextView"
+        android:text="@string/category"
         android:textSize="20sp"
         android:textStyle="bold" />
 

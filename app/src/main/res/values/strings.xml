@@ -1,5 +1,16 @@
 <resources>
-    <string name="app_name">Flake</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="lorem_ipsum_md">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut aliquam nunc vitae tincidunt facilisis. Nunc urna ligula, finibus ac mattis nec, commodo at dui. Sed et volutpat felis, sit amet ultricies lectus. Pellentesque eget dui.</string>
+    <string name="app_name" translatable="false">Flake</string>
+    <string name="lorem_ipsum_md" translatable="false">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut aliquam nunc vitae tincidunt facilisis. Nunc urna ligula, finibus ac mattis nec, commodo at dui. Sed et volutpat felis, sit amet ultricies lectus. Pellentesque eget dui.</string>
+    <string name="time_placeholder" translatable="false">99:99</string>
+
+    <string name="login_button_text">Login</string>
+    <string name="signup_button_text">Sign up</string>
+    <string name="send">Send</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="category">Category</string>
+    <string name="message_placeholder">Type message here</string>
+    <string name="nickname_placeholder">Cool user</string>
+    <string name="description_placeholder">Cool description</string>
+    <string name="server_placeholder">Cool server</string>
 </resources>
