@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.ImageButton
+import android.widget.Button
 import android.widget.TextView
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -54,7 +54,7 @@ class MessagesFragment : Fragment() {
                 adapter = MessagesRecyclerAdapter(getMessages(channelId))
             }
 
-            val sendButton = view.findViewById<ImageButton>(R.id.send_button)
+            val sendButton = view.findViewById<Button>(R.id.send_button)
             val messageInput = view.findViewById<EditText>(R.id.message_input)
             messageInput.doAfterTextChanged { sendButton.isEnabled = it!!.isNotEmpty() }
 

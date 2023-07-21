@@ -81,7 +81,7 @@ class CategoriesRecyclerAdapter(private val categories: JSONArray, private val f
                 setPadding(8, 8, 8, 8)
                 height = (45 * scale + 0.5f).toInt()
                 gravity = Gravity.CENTER_VERTICAL
-                background = holder.context.getDrawable(R.color.teal_700)
+                background = holder.context.getDrawable(R.color.md_theme_dark_primaryContainer)
                 setOnClickListener {
                     val bundle = Bundle()
                     bundle.putString("channel_id", channel.getString("id"))

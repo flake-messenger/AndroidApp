@@ -42,6 +42,8 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
+    implementation "androidx.compose.material3:material3:1.1.1"
+
     implementation "io.ktor:ktor-client-core:2.3.2"
     implementation "io.ktor:ktor-serialization-jackson:2.3.2"
     implementation "io.ktor:ktor-client-content-negotiation:2.3.2"
