@@ -7,9 +7,11 @@
     tools:context=".LoginActivity">
 
     <EditText
+        android:autofillHints="login"
         android:id="@+id/login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minHeight="48dp"
         android:ems="10"
         android:gravity="center"
         android:hint="Login"
@@ -23,9 +25,11 @@
         app:layout_constraintVertical_chainStyle="packed" />
 
     <EditText
+        android:autofillHints = "password"
         android:id="@+id/password"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minHeight="48dp"
         android:ems="10"
         android:gravity="center"
         android:hint="Password"
@@ -53,7 +57,8 @@
 
     <Button
         android:id="@+id/button"
-        android:layout_width="409dp"
+        android:layout_width="0dp"
+        app:layout_constraintWidth_max="320dp"
         android:layout_height="wrap_content"
         android:onClick="toSignup"
         android:text="Регистрация"

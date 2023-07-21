@@ -29,10 +29,10 @@ class MainActivity : AppCompatActivity() {
 
         val recyclerView: RecyclerView = findViewById(R.id.servers_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = CustomRecyclerAdapter(getSerers())
+        recyclerView.adapter = CustomRecyclerAdapter(getServers())
     }
 
-    private fun getSerers(): JSONArray {
+    private fun getServers(): JSONArray {
         var servers = JSONArray()
         val token = getSharedPreferences("Account", 0).getString("token", null)!!
 
@@ -55,7 +55,7 @@ class CustomRecyclerAdapter(private val servers: JSONArray) : RecyclerView.Adapt
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val usernameView: TextView = itemView.findViewById(R.id.username_view)
         val descriptionView: TextView = itemView.findViewById(R.id.description_view)
-        val context = itemView.context
+        val context = itemView.context!!
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {

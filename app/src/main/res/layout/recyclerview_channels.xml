@@ -10,7 +10,8 @@
         android:layout_height="wrap_content"
         android:background="@color/md_theme_dark_primaryContainer"
         android:gravity="center_vertical"
-        android:paddingStart="8px"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
         android:text="TextView"
         android:textSize="20sp"
         android:textStyle="bold" />

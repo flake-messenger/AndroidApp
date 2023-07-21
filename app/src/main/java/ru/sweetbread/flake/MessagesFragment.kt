@@ -121,7 +121,7 @@ class MessagesRecyclerAdapter(private val messages: ArrayList<JSONObject>) : Rec
         val timeView: TextView = itemView.findViewById(R.id.time_view)
         val nicknameView: TextView = itemView.findViewById(R.id.author_name_view)
         val messageView: TextView = itemView.findViewById(R.id.message_view)
-        val context = itemView.context
+        val context = itemView.context!!
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -139,6 +139,10 @@ class MessagesRecyclerAdapter(private val messages: ArrayList<JSONObject>) : Rec
         holder.timeView.text = date
         holder.nicknameView.text = message.getJSONObject("author").getString("username")
         holder.messageView.text = message.getString("content")
+        holder.itemView.setOnLongClickListener {
+            //Log.d("Meow", message.getString("id"))
+            true
+        }
     }
 
 }

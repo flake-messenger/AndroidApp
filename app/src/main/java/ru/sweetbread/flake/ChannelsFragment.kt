@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,7 +34,8 @@ class ChannelsFragment : Fragment() {
         val serverId = requireActivity().intent.extras!!.getString("server_id")
         val recyclerView: RecyclerView = view.findViewById(R.id.categories_list)
         recyclerView.layoutManager = LinearLayoutManager(activity)
-        recyclerView.adapter = CategoriesRecyclerAdapter(getCategories(serverId), requireFragmentManager())
+        recyclerView.adapter =
+            CategoriesRecyclerAdapter(getCategories(serverId), parentFragmentManager)
     }
 
     private fun getCategories(serverId: String?): JSONArray {
@@ -59,7 +61,7 @@ class CategoriesRecyclerAdapter(private val categories: JSONArray, private val f
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val categoryNameView: TextView = itemView.findViewById(R.id.category_name_view)
         val channelsList: LinearLayout = itemView.findViewById(R.id.channels_list)
-        val context = itemView.context
+        val context = itemView.context!!
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -69,7 +71,7 @@ class CategoriesRecyclerAdapter(private val categories: JSONArray, private val f
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val scale = holder.context.resources.displayMetrics.density;
+        val scale = holder.context.resources.displayMetrics.density
         val server = categories[position] as JSONObject
         val channels = server.getJSONArray("channels")
 
@@ -81,7 +83,7 @@ class CategoriesRecyclerAdapter(private val categories: JSONArray, private val f
                 setPadding(8, 8, 8, 8)
                 height = (45 * scale + 0.5f).toInt()
                 gravity = Gravity.CENTER_VERTICAL
-                background = holder.context.getDrawable(R.color.md_theme_dark_primaryContainer)
+                background = AppCompatResources.getDrawable(holder.context, R.color.md_theme_dark_primaryContainer)
                 setOnClickListener {
                     val bundle = Bundle()
                     bundle.putString("channel_id", channel.getString("id"))
