@@ -68,7 +68,7 @@ class MessagesFragment : Fragment() {
                         val json = JSONObject()
                             .put("content", messageInput.text)
                         val request = client
-                            .post("https://flake.coders-squad.com/api/v1/dev/channels/$channelId/messages")
+                            .post("$baseurl/dev/channels/$channelId/messages")
                             {
                                 headers { bearerAuth(token) }
                                 setBody(json.toString())
@@ -95,7 +95,7 @@ class MessagesFragment : Fragment() {
         runBlocking {
             val client = HttpClient()
             val request =
-                client.get("https://flake.coders-squad.com/api/v1/dev/channels/$channelId/messages")
+                client.get("$baseurl/dev/channels/$channelId/messages")
                 {headers { bearerAuth(token) }}
             if (request.status == HttpStatusCode.OK) {
                 messages = JSONArray(request.bodyAsText()).toArrayList()

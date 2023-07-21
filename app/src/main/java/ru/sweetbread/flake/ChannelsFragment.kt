@@ -43,7 +43,7 @@ class ChannelsFragment : Fragment() {
         runBlocking {
             val client = HttpClient()
             val request =
-                client.get ("https://flake.coders-squad.com/api/v1/dev/servers/$serverId/categories")
+                client.get ("$baseurl/dev/servers/$serverId/categories")
                 {headers { bearerAuth(token) }}
             if (request.status == HttpStatusCode.OK) {
                 categories = JSONArray(request.bodyAsText())

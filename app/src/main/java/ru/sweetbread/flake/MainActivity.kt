@@ -20,6 +20,8 @@ import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 
+const val baseurl = "https://flake.coders-squad.com/api/v1"
+
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         runBlocking {
             val client = HttpClient()
             val response =
-                client.get("https://flake.coders-squad.com/api/v1/dev/servers/")
+                client.get("$baseurl/dev/servers")
                 { headers { bearerAuth(token) } }
             if (response.status == HttpStatusCode.OK) {
                 servers = JSONArray(response.bodyAsText())
