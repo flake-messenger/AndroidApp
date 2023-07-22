@@ -1,21 +1,20 @@
 package ru.sweetbread.flake
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.content.TextContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.util.InternalAPI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import io.ktor.http.contentType
+import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,30 +22,43 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
     }
 
-    @OptIn(InternalAPI::class)
     fun applyLogin(button: View) {
-        val login = findViewById<TextView>(R.id.login).text.toString()
-        val password = findViewById<TextView>(R.id.password).text.toString()
-        Log.d("Meow", "\"login\": \"$login\", \"password\", \"$password\"")
+        val login = findViewById<TextView>(R.id.login).text!!
+        val password = findViewById<TextView>(R.id.password).text!!
 
         val client = HttpClient()
-        GlobalScope.launch(Dispatchers.Main) {
+        runBlocking {
             val response =
-                client.post("https://flake.coders-squad.com/api/v1/web/authorization/token") {
-                    body = TextContent("{\"login\": \"$login\", \"password\": \"$password\"}", ContentType.Application.Json)
+                client.post("$baseurl/web/authorization/login") {
+                    setBody(
+                        JSONObject()
+                            .put("login", login)
+                            .put("password", password)
+                            .toString()
+                    )
+                    contentType(ContentType.Application.Json)
                 }
 
-            val data = response.bodyAsText()
             if (response.status == HttpStatusCode.OK) {
+                val json = JSONObject(response.bodyAsText())
+                val token = json.getString("token")
+                Toast.makeText(this@LoginActivity, R.string.success, Toast.LENGTH_SHORT).show()
+
                 val editor = getSharedPreferences("Account", 0).edit()
-                editor.putString("token", data)
+                editor.putString("token", token)
                 editor.apply()
 
-                startActivity(Intent(button.context, StartActivity::class.java))
+                startActivity(Intent(button.context, MainActivity::class.java))
                 finish()
             } else {
-                finish();
-                startActivity(intent);
+                Toast.makeText(
+                    this@LoginActivity,
+                    "${resources.getString(R.string.error)}: ${response.bodyAsText()}",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                finish()
+                startActivity(intent)
             }
         }
     }

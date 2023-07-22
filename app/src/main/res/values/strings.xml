@@ -13,4 +13,8 @@
     <string name="nickname_placeholder">Cool user</string>
     <string name="description_placeholder">Cool description</string>
     <string name="server_placeholder">Cool server</string>
+
+    <string name="sending">Sending…</string>
+    <string name="success">Success</string>
+    <string name="error">Error</string>
 </resources>

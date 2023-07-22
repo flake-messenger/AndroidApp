@@ -10,4 +10,8 @@
     <string name="nickname_placeholder">Клёвый пользователь</string>
     <string name="description_placeholder">Клёвое описание</string>
     <string name="server_placeholder">Клёвый сервер</string>
+
+    <string name="sending">Отправка…</string>
+    <string name="success">Успешно</string>
+    <string name="error">Ошибка</string>
 </resources>

@@ -1,18 +1,15 @@
 package ru.sweetbread.flake
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headers
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class StartActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,24 +27,15 @@ class StartActivity : AppCompatActivity() {
         } else {
             val client = HttpClient()
 
-            GlobalScope.launch(Dispatchers.Main) {
-                val response: HttpResponse = client.get(
-                    "https://flake.coders-squad.com/api/v1/dev/users/self"
-                ){
-                    headers {
-                        bearerAuth(token)
-                    }
-                }
+            runBlocking {
+                val response: HttpResponse = client.get("$baseurl/dev/users/self")
+                { headers { bearerAuth(token) } }
                 if (response.status == HttpStatusCode.OK) {
-                    val toast = Toast.makeText(applicationContext, "Ok", Toast.LENGTH_SHORT)
-                    toast.show()
-
                     startActivity(Intent(context, MainActivity::class.java))
-                    finish()
                 } else {
                     startActivity(Intent(context, LoginActivity::class.java))
-                    finish()
                 }
+                finish()
             }
         }
     }
