@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -46,41 +46,54 @@ class MessagesFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (channelId != "") {
-            val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
-            val client = HttpClient()
+        val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
+        val client = HttpClient()
 
-            view.findViewById<RecyclerView>(R.id.messages_list).apply {
-                layoutManager = LinearLayoutManager(activity)
-                (layoutManager as LinearLayoutManager).stackFromEnd = false
-                (layoutManager as LinearLayoutManager).reverseLayout = true
-                messages = getMessages(channelId)
-                adapter = MessagesRecyclerAdapter(messages)
+        if (channelId == "") {
+            val serverId = requireActivity().intent.extras!!.getString("server_id")
+            runBlocking {
+                val request =
+                    client.get("$baseurl/dev/servers/$serverId/channels")
+                    { headers { bearerAuth(token) } }
+                if (request.status == HttpStatusCode.OK) {
+                    val json = JSONArray(request.bodyAsText())
+                    if (json.length() != 0) channelId = json.getJSONObject(0).getString("id")
+                }
             }
+        }
 
-            val sendButton = view.findViewById<Button>(R.id.send_button)
-            val messageInput = view.findViewById<EditText>(R.id.message_input)
-            messageInput.doAfterTextChanged { sendButton.isEnabled = it!!.isNotEmpty() }
+        if (channelId == "") return
 
-            sendButton.apply {
-                setOnClickListener {
-                    runBlocking {
-                        val json = JSONObject()
-                            .put("content", messageInput.text)
-                        val request = client
-                            .post("$baseurl/dev/channels/$channelId/messages")
-                            {
-                                headers { bearerAuth(token) }
-                                setBody(json.toString())
-                                contentType(ContentType.Application.Json)
-                            }
-                        if (request.status == HttpStatusCode.OK) {
-                            messages.add(0, JSONObject(request.bodyAsText()))
-                            messageInput.setText("")
-                            view.findViewById<RecyclerView>(R.id.messages_list).apply {
-                                adapter!!.notifyItemInserted(0)
-                                smoothScrollToPosition(0)
-                            }
+        view.findViewById<RecyclerView>(R.id.messages_list).apply {
+            layoutManager = LinearLayoutManager(activity)
+            (layoutManager as LinearLayoutManager).stackFromEnd = false
+            (layoutManager as LinearLayoutManager).reverseLayout = true
+            messages = getMessages(channelId)
+            adapter = MessagesRecyclerAdapter(messages)
+        }
+
+        val sendButton = view.findViewById<Button>(R.id.send_button)
+        val messageInput = view.findViewById<EditText>(R.id.message_input)
+        messageInput.doAfterTextChanged { sendButton.isEnabled = it!!.isNotEmpty() }
+
+        sendButton.apply {
+            setOnClickListener {
+                runBlocking {
+                    val json = JSONObject()
+                        .put("content", messageInput.text)
+                    val request = client
+                        .post("$baseurl/dev/channels/$channelId/messages")
+                        {
+                            headers { bearerAuth(token) }
+                            setBody(json.toString())
+                            contentType(ContentType.Application.Json)
+                        }
+                    if (request.status == HttpStatusCode.OK) {
+                        messages.add(0, JSONObject(request.bodyAsText()))
+                        messageInput.setText("")
+                        view.findViewById<RecyclerView>(R.id.messages_list).apply {
+                            adapter!!.notifyItemInserted(0)
+                            smoothScrollToPosition(0)
                         }
                     }
                 }
