@@ -15,30 +15,35 @@
             android:id="@+id/messages_list"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:clipToPadding="true"
             android:scrollIndicators="right"
-            app:layout_constraintBottom_toTopOf="@+id/send_button"
+            app:layout_constraintBottom_toTopOf="@+id/textInputLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:reverseLayout="true"
-            android:clipToPadding="true"
             app:stackFromEnd="false"
             tools:itemCount="3"
             tools:listitem="@layout/recyclerview_message" />
 
-        <EditText
-            android:id="@+id/message_input"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            app:layout_constraintWidth_max="488dp"
             android:ems="10"
-            android:hint="@string/message_placeholder"
             android:inputType="text"
+            android:minHeight="48dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/send_button"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/messages_list" />
+            app:layout_constraintWidth_max="488dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/message_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/message_placeholder" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <Button
             android:id="@+id/send_button"
@@ -48,7 +53,8 @@
             android:text="@string/send"
             app:icon="@android:drawable/ic_menu_send"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/messages_list" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

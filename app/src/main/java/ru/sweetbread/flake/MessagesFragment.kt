@@ -5,12 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textfield.TextInputEditText
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.bearerAuth
@@ -82,7 +82,7 @@ class MessagesFragment : Fragment() {
         }
 
         val sendButton = view.findViewById<Button>(R.id.send_button)
-        val messageInput = view.findViewById<EditText>(R.id.message_input)
+        val messageInput = view.findViewById<TextInputEditText>(R.id.message_input)
         messageInput.doAfterTextChanged { sendButton.isEnabled = it!!.isNotEmpty() }
 
         sendButton.apply {
