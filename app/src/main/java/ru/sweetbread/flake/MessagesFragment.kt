@@ -12,15 +12,23 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
+import io.ktor.client.request.prepareGet
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.utils.io.readUTF8Line
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
@@ -64,7 +72,8 @@ class MessagesFragment : Fragment() {
 
         if (channelId == "") return
 
-        view.findViewById<RecyclerView>(R.id.messages_list).apply {
+        val mesList = view.findViewById<RecyclerView>(R.id.messages_list)
+        mesList.apply {
             layoutManager = LinearLayoutManager(activity)
             (layoutManager as LinearLayoutManager).stackFromEnd = false
             (layoutManager as LinearLayoutManager).reverseLayout = true
@@ -89,11 +98,53 @@ class MessagesFragment : Fragment() {
                             contentType(ContentType.Application.Json)
                         }
                     if (request.status == HttpStatusCode.OK) {
-                        messages.add(0, JSONObject(request.bodyAsText()))
                         messageInput.setText("")
-                        view.findViewById<RecyclerView>(R.id.messages_list).apply {
-                            adapter!!.notifyItemInserted(0)
-                            smoothScrollToPosition(0)
+                    }
+                }
+            }
+        }
+
+        GlobalScope.launch(Dispatchers.Default) {
+            val client = HttpClient {
+                install(HttpTimeout) {
+                    socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+                }
+            }
+            val request = client.prepareGet("$baseurl/dev/sse") {
+                headers {
+                    append(HttpHeaders.Accept, "text/event-stream")
+                    bearerAuth(token)
+                }
+            }
+            request.execute {
+                val channel = it.bodyAsChannel()
+                while (true) {
+                    if (channel.availableForRead > 0) {
+                        channel.readUTF8Line()
+                        val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
+                        channel.readUTF8Line()
+
+                        val json = JSONObject(msg.drop(5))
+
+                        when (json.getString("name")) {
+                            "MESSAGE_CREATED" -> {
+                                messages.add(0, json.getJSONObject("message"))
+                                requireActivity().runOnUiThread {
+                                    mesList.adapter!!.notifyItemInserted(0)
+                                    mesList.smoothScrollToPosition(0)
+                                }
+                            }
+
+                            "MESSAGE_DELETED" -> {
+                                val id = json.getJSONObject("message").getString("id")
+                                requireActivity().runOnUiThread {
+                                    messages.forEachIndexed { index, msg ->
+                                        if (msg.getString("id") == id)
+                                            mesList.adapter!!.notifyItemRemoved(index)
+                                    }
+                                    messages.removeIf { msg -> msg.getString("id") == id }
+                                }
+                            }
                         }
                     }
                 }

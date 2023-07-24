@@ -14,4 +14,8 @@
     <string name="sending">Отправка…</string>
     <string name="success">Успешно</string>
     <string name="error">Ошибка</string>
+
+    <string name="link">Ссылка</string>
+    <string name="join">Присоединиться</string>
+    <string name="close">Закрыть</string>
 </resources>
