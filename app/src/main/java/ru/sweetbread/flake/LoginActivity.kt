@@ -3,9 +3,11 @@ package ru.sweetbread.flake
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -20,11 +22,23 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        val loginView = findViewById<TextView>(R.id.loginView)
+        val passwordView = findViewById<TextView>(R.id.passwordView)
+        val button = findViewById<Button>(R.id.confirmBtn)
+
+        fun validate() {
+            button.isEnabled =
+                (loginView.text.length in 5..20) and (passwordView.text.length in 4..30)
+        }
+
+        loginView.doAfterTextChanged { validate() }
+        passwordView.doAfterTextChanged { validate() }
     }
 
     fun applyLogin(button: View) {
-        val login = findViewById<TextView>(R.id.login).text!!
-        val password = findViewById<TextView>(R.id.password).text!!
+        val login = findViewById<TextView>(R.id.loginView).text!!
+        val password = findViewById<TextView>(R.id.passwordView).text!!
 
         val client = HttpClient()
         runBlocking {
@@ -61,5 +75,10 @@ class LoginActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+    }
+
+    fun toSignup(btn: View) {
+        startActivity(Intent(btn.context, SignupActivity::class.java))
+        finish()
     }
 }

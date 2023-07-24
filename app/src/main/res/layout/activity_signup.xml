@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LoginActivity">
+    tools:context=".SignupActivity">
 
     <EditText
         android:autofillHints="login"
@@ -34,11 +34,28 @@
         android:gravity="center"
         android:hint="@string/password"
         android:inputType="textPassword"
-        app:layout_constraintBottom_toTopOf="@+id/confirmBtn"
+        app:layout_constraintBottom_toTopOf="@+id/confirmPasswordView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginView"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <EditText
+        android:autofillHints="password"
+        android:id="@+id/confirmPasswordView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="@string/confirm_password"
+        android:inputType="textPassword"
+        app:layout_constraintBottom_toTopOf="@+id/confirmBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/passwordView"
         app:layout_constraintVertical_bias="0.5" />
 
     <Button
@@ -47,13 +64,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:enabled="false"
-        android:onClick="applyLogin"
-        android:text="@string/login_button_text"
+        android:onClick="applySignup"
+        android:text="@string/signup_button_text"
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/passwordView"
+        app:layout_constraintTop_toBottomOf="@+id/confirmPasswordView"
         app:layout_constraintVertical_bias="0.5" />
 
     <Button
@@ -61,11 +78,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
-        android:onClick="toSignup"
-        android:text="@string/signup_button_text"
+        android:onClick="toLogin"
+        android:text="@string/login_button_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintWidth_max="320dp" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

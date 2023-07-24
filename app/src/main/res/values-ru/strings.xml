@@ -3,8 +3,11 @@
     <string name="login_button_text">Логин</string>
     <string name="signup_button_text">Регистрация</string>
     <string name="send">Отправить</string>
+
     <string name="login">Логин</string>
     <string name="password">Пароль</string>
+    <string name="confirm_password">Подтвержение пароля</string>
+
     <string name="category">Категория</string>
     <string name="message_placeholder">Печатайте здесь</string>
     <string name="nickname_placeholder">Клёвый пользователь</string>
