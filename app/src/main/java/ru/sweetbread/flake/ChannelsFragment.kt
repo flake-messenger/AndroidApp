@@ -18,11 +18,15 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
 class ChannelsFragment : Fragment() {
+    private var categories = ArrayList<JSONObject>()
+    lateinit var recyclerView: RecyclerView
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -32,31 +36,37 @@ class ChannelsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val serverId = requireActivity().intent.extras!!.getString("server_id")
-        val recyclerView: RecyclerView = view.findViewById(R.id.categories_list)
+        recyclerView = view.findViewById(R.id.categories_list)
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter =
-            CategoriesRecyclerAdapter(getCategories(serverId), parentFragmentManager)
+            CategoriesRecyclerAdapter(categories, parentFragmentManager)
+        getCategories(serverId)
     }
 
-    private fun getCategories(serverId: String?): JSONArray {
+    private fun getCategories(serverId: String?) {
         val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
-        var categories = JSONArray()
 
-        runBlocking {
+        GlobalScope.launch(Dispatchers.Default) {
             val client = HttpClient()
             val request =
-                client.get ("$baseurl/dev/servers/$serverId/categories")
-                {headers { bearerAuth(token) }}
+                client.get("$baseurl/dev/servers/$serverId/categories")
+                { headers { bearerAuth(token) } }
             if (request.status == HttpStatusCode.OK) {
-                categories = JSONArray(request.bodyAsText())
+                categories = JSONArray(request.bodyAsText()).toArrayList()
+                requireActivity().runOnUiThread {
+                    recyclerView.adapter =
+                        CategoriesRecyclerAdapter(categories, parentFragmentManager)
+                    recyclerView.adapter!!.notifyDataSetChanged()
+                }
             }
         }
-
-        return categories
     }
 }
 
-class CategoriesRecyclerAdapter(private val categories: JSONArray, private val fragmentManager: FragmentManager) : RecyclerView.Adapter<CategoriesRecyclerAdapter.MyViewHolder>() {
+class CategoriesRecyclerAdapter(
+    private val categories: ArrayList<JSONObject>,
+    private val fragmentManager: FragmentManager
+) : RecyclerView.Adapter<CategoriesRecyclerAdapter.MyViewHolder>() {
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val categoryNameView: TextView = itemView.findViewById(R.id.category_name_view)
@@ -72,7 +82,7 @@ class CategoriesRecyclerAdapter(private val categories: JSONArray, private val f
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         val scale = holder.context.resources.displayMetrics.density
-        val server = categories[position] as JSONObject
+        val server = categories[position]
         val channels = server.getJSONArray("channels")
 
         holder.categoryNameView.text = server.getString("name")
@@ -99,5 +109,5 @@ class CategoriesRecyclerAdapter(private val categories: JSONArray, private val f
         }
     }
 
-    override fun getItemCount() = categories.length()
+    override fun getItemCount() = categories.size
 }

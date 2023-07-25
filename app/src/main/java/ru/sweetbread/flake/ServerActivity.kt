@@ -9,7 +9,9 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 class ServerActivity : AppCompatActivity() {
@@ -20,7 +22,7 @@ class ServerActivity : AppCompatActivity() {
         findViewById<OverlappingPanelsLayout>(R.id.overlapping_panels)
             .setEndPanelLockState(OverlappingPanelsLayout.LockState.CLOSE)
 
-        runBlocking {
+        GlobalScope.launch(Dispatchers.Default) {
             val client = HttpClient()
             val serverId = intent.extras!!.getString("server_id")
             val token = getSharedPreferences("Account", 0).getString("token", null)!!
@@ -30,7 +32,9 @@ class ServerActivity : AppCompatActivity() {
                 { headers { bearerAuth(token) } }
             if (request.status == HttpStatusCode.OK) {
                 val json = JSONObject(request.bodyAsText())
-                title = json.getString("name")
+                runOnUiThread {
+                    title = json.getString("name")
+                }
             }
         }
     }
