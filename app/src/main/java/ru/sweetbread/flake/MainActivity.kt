@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                         val json = JSONObject(msg.drop(5))
 
                         when (json.getString("name")) {
-                            "SERVER_CREATED" -> {
+                            "SERVER_CREATED", "SERVER_JOINED" -> {
                                 servers.add(json.getJSONObject("server"))
                                 runOnUiThread {
                                     recyclerView.adapter!!.notifyItemInserted(servers.size)
