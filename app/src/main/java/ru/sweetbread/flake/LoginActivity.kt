@@ -28,8 +28,8 @@ class LoginActivity : AppCompatActivity() {
         val button = findViewById<Button>(R.id.confirmBtn)
 
         fun validate() {
-            button.isEnabled =
-                (loginView.text.length in 5..20) and (passwordView.text.length in 4..30)
+            button.isEnabled = (loginView.text.length in 5..20) and
+                    (loginView.text.contains(Regex("[0-9a-z._-]+"))) and (passwordView.text.length in 4..30)
         }
 
         loginView.doAfterTextChanged { validate() }

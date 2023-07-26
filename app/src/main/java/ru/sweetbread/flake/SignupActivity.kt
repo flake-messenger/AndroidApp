@@ -34,7 +34,7 @@ class SignupActivity : AppCompatActivity() {
             btn.isEnabled = false
             if (it!!.length !in 5..20) {
                 loginView.error = "Login must be in 5 to 20 symbols"
-            } else if (!(it.contains(Regex("[0-9a-z_]+")))) {
+            } else if (!(it.contains(Regex("[0-9a-z._-]+")))) {
                 loginView.error = "Login must have only lowercase letters, underscore and numbers"
             } else {
                 loginView.error = null

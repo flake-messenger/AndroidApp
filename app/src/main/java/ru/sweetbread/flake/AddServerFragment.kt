@@ -36,7 +36,7 @@ class AddServerFragment : Fragment() {
         val linkView = view.findViewById<TextView>(R.id.link_to_join_view)
         linkView.doAfterTextChanged {
             joinButton.isEnabled =
-                it!!.startsWith('/') and (it.length in 2..21)
+                (it!!.length in 5..20) and (it.contains(Regex("[0-9A-z_]+")))
         }
         joinButton.setOnClickListener {
             val token =
