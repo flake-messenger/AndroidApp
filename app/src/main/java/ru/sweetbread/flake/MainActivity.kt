@@ -26,6 +26,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
@@ -61,32 +62,38 @@ class MainActivity : AppCompatActivity() {
                     bearerAuth(getSharedPreferences("Account", 0).getString("token", null)!!)
                 }
             }
-            request.execute {
-                val channel = it.bodyAsChannel()
-                while (true) {
-                    if (channel.availableForRead > 0) {
-                        channel.readUTF8Line()
-                        val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
-                        channel.readUTF8Line()
+            while (true) {
+                request.execute {
+                    if (it.status != HttpStatusCode.OK) {
+                        delay(5000)
+                    } else {
+                        val channel = it.bodyAsChannel()
+                        while (true) {
+                            if (channel.availableForRead > 0) {
+                                channel.readUTF8Line()
+                                val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
+                                channel.readUTF8Line()
 
-                        val json = JSONObject(msg.drop(5))
+                                val json = JSONObject(msg.drop(5))
 
-                        when (json.getString("name")) {
-                            "SERVER_CREATED", "SERVER_JOINED" -> {
-                                servers.add(json.getJSONObject("server"))
-                                runOnUiThread {
-                                    recyclerView.adapter!!.notifyItemInserted(servers.size)
-                                }
-                            }
-
-                            "SERVER_DELETED" -> {
-                                val id = json.getJSONObject("server").getString("id")
-                                runOnUiThread {
-                                    servers.forEachIndexed { index, server ->
-                                        if (server.getString("id") == id)
-                                            recyclerView.adapter!!.notifyItemRemoved(index)
+                                when (json.getString("name")) {
+                                    "SERVER_CREATED", "SERVER_JOINED" -> {
+                                        servers.add(json.getJSONObject("server"))
+                                        runOnUiThread {
+                                            recyclerView.adapter!!.notifyItemInserted(servers.size)
+                                        }
                                     }
-                                    servers.removeIf { server -> server.getString("id") == id }
+
+                                    "SERVER_DELETED" -> {
+                                        val id = json.getJSONObject("server").getString("id")
+                                        runOnUiThread {
+                                            servers.forEachIndexed { index, server ->
+                                                if (server.getString("id") == id)
+                                                    recyclerView.adapter!!.notifyItemRemoved(index)
+                                            }
+                                            servers.removeIf { server -> server.getString("id") == id }
+                                        }
+                                    }
                                 }
                             }
                         }

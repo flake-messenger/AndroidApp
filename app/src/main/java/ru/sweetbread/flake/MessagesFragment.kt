@@ -28,6 +28,7 @@ import io.ktor.http.contentType
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
@@ -110,41 +111,49 @@ class MessagesFragment : Fragment() {
                     socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
                 }
             }
+
             val request = client.prepareGet("$baseurl/dev/sse") {
                 headers {
                     append(HttpHeaders.Accept, "text/event-stream")
                     bearerAuth(token)
                 }
             }
-            request.execute {
-                val channel = it.bodyAsChannel()
-                while (true) {
-                    if (channel.availableForRead > 0) {
-                        channel.readUTF8Line()
-                        val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
-                        channel.readUTF8Line()
 
-                        val json = JSONObject(msg.drop(5))
+            while (true) {
+                request.execute {
+                    if (it.status != HttpStatusCode.OK) {
+                        delay(5000)
+                    } else {
+                        val channel = it.bodyAsChannel()
+                        while (true) {
+                            if (channel.availableForRead > 0) {
+                                channel.readUTF8Line()
+                                val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
+                                channel.readUTF8Line()
 
-                        when (json.getString("name")) {
-                            "MESSAGE_CREATED" -> {
-                                messages.add(0, json.getJSONObject("message"))
-                                requireActivity().runOnUiThread {
-                                    mesList.adapter!!.notifyItemInserted(0)
-                                    mesList.smoothScrollToPosition(0)
-                                }
-                            }
+                                val json = JSONObject(msg.drop(5))
 
-                            "MESSAGE_DELETED" -> {
-                                val id = json.getJSONObject("message").getString("id")
-                                requireActivity().runOnUiThread {
-                                    messages.forEachIndexed { index, msg ->
-                                        if (msg.getString("id") == id)
-                                            mesList.adapter!!.notifyItemRemoved(index)
+                                when (json.getString("name")) {
+                                    "MESSAGE_CREATED" -> {
+                                        messages.add(0, json.getJSONObject("message"))
+                                        requireActivity().runOnUiThread {
+                                            mesList.adapter!!.notifyItemInserted(0)
+                                            mesList.smoothScrollToPosition(0)
+                                        }
                                     }
-                                    messages.removeIf { msg -> msg.getString("id") == id }
+
+                                    "MESSAGE_DELETED" -> {
+                                        val id = json.getJSONObject("message").getString("id")
+                                        requireActivity().runOnUiThread {
+                                            messages.forEachIndexed { index, msg ->
+                                                if (msg.getString("id") == id)
+                                                    mesList.adapter!!.notifyItemRemoved(index)
+                                            }
+                                            messages.removeIf { msg -> msg.getString("id") == id }
+                                        }
+                                    }
                                 }
-                            }
+                            } else if (channel.isClosedForRead) break
                         }
                     }
                 }
