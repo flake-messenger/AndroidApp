@@ -60,4 +60,9 @@
     <string name="link">Link</string>
     <string name="join">Join</string>
     <string name="close">Close</string>
+
+    <string name="login_length_limits">Login must be in 5 to 20 symbols</string>
+    <string name="login_regex_limits">"Login must have only lowercase letters, underscore, numbers, minus and dot"</string>
+    <string name="password_length_limit">Password must be in 4 to 40 symbols</string>
+    <string name="same_pass">Passwords must be the same</string>
 </resources>

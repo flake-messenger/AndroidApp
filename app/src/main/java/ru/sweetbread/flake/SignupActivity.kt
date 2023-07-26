@@ -33,9 +33,9 @@ class SignupActivity : AppCompatActivity() {
         loginView.doAfterTextChanged {
             btn.isEnabled = false
             if (it!!.length !in 5..20) {
-                loginView.error = "Login must be in 5 to 20 symbols"
+                loginView.error = getString(R.string.login_length_limits)
             } else if (!(it.contains(Regex("[0-9a-z._-]+")))) {
-                loginView.error = "Login must have only lowercase letters, underscore and numbers"
+                loginView.error = getString(R.string.login_regex_limits)
             } else {
                 loginView.error = null
                 btn.isEnabled = ((passView.error == null) and (confPassView.error == null)
@@ -44,8 +44,8 @@ class SignupActivity : AppCompatActivity() {
         }
         passView.doAfterTextChanged {
             btn.isEnabled = false
-            if (it!!.length !in 4..30) {
-                passView.error = "Password must be in 4 to 30 symbols"
+            if (it!!.length !in 4..40) {
+                passView.error = getString(R.string.password_length_limit)
             } else {
                 passView.error = null
                 btn.isEnabled = ((loginView.error == null) and (confPassView.error == null)
@@ -55,7 +55,7 @@ class SignupActivity : AppCompatActivity() {
         confPassView.doAfterTextChanged {
             btn.isEnabled = false
             if (it!!.toString() != passView.text.toString()) {
-                confPassView.error = "Passwords must be the same"
+                confPassView.error = getString(R.string.same_pass)
             } else {
                 confPassView.error = null
                 btn.isEnabled = ((passView.error == null) and (loginView.error == null)

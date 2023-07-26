@@ -21,4 +21,9 @@
     <string name="link">Ссылка</string>
     <string name="join">Присоединиться</string>
     <string name="close">Закрыть</string>
+
+    <string name="login_length_limits">Логин должен быть от 5 до 20 символов</string>
+    <string name="login_regex_limits">Логин должен содержать буквы нижнего регистра, цифры, нижнее подчеркивание, дефис и точку</string>
+    <string name="password_length_limit">Пароль должен содержать от 4 до 40 символов</string>
+    <string name="same_pass">Пароли должны совпадать</string>
 </resources>
