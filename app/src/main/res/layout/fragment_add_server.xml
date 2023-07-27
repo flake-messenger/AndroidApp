@@ -13,7 +13,9 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@color/md_theme_dark_outlineVariant"
             android:orientation="vertical"
+            android:padding="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -43,12 +45,6 @@
                     android:text="@string/join" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/close_add_server_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/close" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

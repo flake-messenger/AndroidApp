@@ -30,8 +30,7 @@ class AddServerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val panel = requireActivity().findViewById<FragmentContainerView>(R.id.add_server_panel)
-        view.findViewById<Button>(R.id.close_add_server_button)
-            .setOnClickListener { panel.visibility = GONE }
+        panel.setOnClickListener { panel.visibility = GONE }
         val joinButton = view.findViewById<Button>(R.id.join_to_join_button)
         val linkView = view.findViewById<TextView>(R.id.link_to_join_view)
         linkView.doAfterTextChanged {
