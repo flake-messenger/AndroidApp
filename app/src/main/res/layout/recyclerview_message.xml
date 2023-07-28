@@ -1,33 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:layout_marginHorizontal="8sp"
+    android:layout_marginTop="8sp"
+    android:background="@drawable/message_shape"
+    android:backgroundTint="?colorSecondaryContainer"
+    android:orientation="vertical"
+    android:padding="8sp">
 
     <TextView
-        android:id="@+id/time_view"
-        android:layout_width="60dp"
-        android:layout_height="match_parent"
-        android:text="@string/time_placeholder" />
+        android:id="@+id/author_name_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:singleLine="true"
+        android:text="@string/nickname_placeholder"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/author_name_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/nickname_placeholder"
-            android:textStyle="italic" />
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:foregroundGravity="right"
+        android:orientation="horizontal"
+        app:flexWrap="wrap">
 
         <TextView
             android:id="@+id/message_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="500dp"
+            android:text="@string/lorem_ipsum_md" />
+
+        <TextView
+            android:id="@+id/time_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8sp"
-            android:text="@string/lorem_ipsum_md" />
-    </LinearLayout>
+            android:layout_marginStart="16dp"
+            android:alpha="0.75"
+            android:gravity="bottom|end"
+            android:text="@string/time_placeholder"
+            app:layout_alignSelf="flex_end" />
+    </com.google.android.flexbox.FlexboxLayout>
+
 </LinearLayout>
