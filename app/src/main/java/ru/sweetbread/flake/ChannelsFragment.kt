@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -93,7 +92,6 @@ class CategoriesRecyclerAdapter(
                 setPadding(8, 8, 8, 8)
                 height = (45 * scale + 0.5f).toInt()
                 gravity = Gravity.CENTER_VERTICAL
-                background = AppCompatResources.getDrawable(holder.context, R.color.md_theme_dark_primaryContainer)
                 setOnClickListener {
                     val bundle = Bundle()
                     bundle.putString("channel_id", channel.getString("id"))

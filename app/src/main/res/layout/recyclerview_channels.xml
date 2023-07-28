@@ -8,7 +8,7 @@
         android:id="@+id/category_name_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/md_theme_dark_primaryContainer"
+        android:layout_marginTop="8dp"
         android:gravity="center_vertical"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
@@ -20,5 +20,6 @@
         android:id="@+id/channels_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?colorPrimaryContainer"
         android:orientation="vertical" />
 </LinearLayout>
