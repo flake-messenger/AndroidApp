@@ -40,6 +40,9 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // |>-*
+        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
+
         (activity as AppCompatActivity).supportActionBar!!.apply {
             setHomeAsUpIndicator(R.drawable.arrow_back)
             setDisplayHomeAsUpEnabled(true)
