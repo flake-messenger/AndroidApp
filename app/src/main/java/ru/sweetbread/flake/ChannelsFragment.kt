@@ -45,13 +45,17 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
             setHomeAsUpIndicator(R.drawable.arrow_back)
             setDisplayHomeAsUpEnabled(true)
         }
+
         requireActivity().findViewById<MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener {
-            parentFragmentManager
-                .beginTransaction()
-                .replace(R.id.mainContainer, ServerListFragment())
-                .remove(this)
-                .commit()
+            // |>-*
+            runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
+            if (parentFragmentManager.backStackEntryCount == 1) {
+                activity?.title = "Flake"
+                (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+            }
+            parentFragmentManager.popBackStack()
         }
+
 
         GlobalScope.launch(Dispatchers.Default) {
             val request =
@@ -70,8 +74,7 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
             CategoriesRecyclerAdapter(
                 categories,
                 parentFragmentManager,
-                requireActivity(),
-                serverId
+                requireActivity()
             )
         getCategories(serverId)
     }
@@ -87,8 +90,7 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
                     recyclerView.adapter =
                         activity?.let {
                             CategoriesRecyclerAdapter(
-                                categories, parentFragmentManager,
-                                it, serverId
+                                categories, parentFragmentManager, it
                             )
                         }
                     recyclerView.adapter?.notifyDataSetChanged()
@@ -100,8 +102,7 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
     class CategoriesRecyclerAdapter(
         private val categories: ArrayList<JSONObject>,
         private val fragmentManager: FragmentManager,
-        private val activity: FragmentActivity,
-        private val serverId: String
+        private val activity: FragmentActivity
     ) : RecyclerView.Adapter<CategoriesRecyclerAdapter.MyViewHolder>() {
 
         class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -130,19 +131,20 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
                     height = (45 * scale + 0.5f).toInt()
                     gravity = Gravity.CENTER_VERTICAL
                     setOnClickListener {
+                        // |>-*
+                        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
                         if (activity.findViewById<FragmentContainerView>(R.id.msgContainer).visibility != View.GONE) {
-                            fragmentManager.beginTransaction()
-                                .replace(
-                                    R.id.msgContainer,
-                                    MessagesFragment(channel.getString("id"), serverId)
-                                )
+                            fragmentManager
+                                .beginTransaction()
+                                .setCustomAnimations(R.anim.from_down, R.anim.to_down)
+                                .replace(R.id.msgContainer, MessagesFragment(channel.getString("id")))
                                 .commit()
                         } else {
-                            fragmentManager.beginTransaction()
-                                .replace(
-                                    R.id.mainContainer,
-                                    MessagesFragment(channel.getString("id"), serverId)
-                                )
+                            fragmentManager
+                                .beginTransaction()
+                                .setCustomAnimations(R.anim.from_right, R.anim.to_left, R.anim.from_left, R.anim.to_right)
+                                .add(R.id.mainContainer, MessagesFragment(channel.getString("id")))
+                                .addToBackStack("channels")
                                 .commit()
                         }
                     }

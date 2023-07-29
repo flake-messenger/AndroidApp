@@ -9,6 +9,10 @@ import androidx.fragment.app.FragmentContainerView
 import com.google.android.material.appbar.MaterialToolbar
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import kotlinx.coroutines.runBlocking
 
 
 const val baseurl = "https://flake.coders-squad.com/api/v1"
@@ -38,6 +42,20 @@ class MainActivity : AppCompatActivity() {
 
         if (width < 600) {  // One-panel mode
             findViewById<FragmentContainerView>(R.id.msgContainer).visibility = View.GONE
+        }
+    }
+
+    override fun onBackPressed() {
+        // |>-*
+        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
+        when (supportFragmentManager.backStackEntryCount) {
+            0 -> super.onBackPressed()
+            1 -> {
+                title = "Flake"
+                supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+                supportFragmentManager.popBackStack()
+            }
+            else -> supportFragmentManager.popBackStack()
         }
     }
 }

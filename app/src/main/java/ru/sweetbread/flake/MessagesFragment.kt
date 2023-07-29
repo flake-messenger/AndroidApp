@@ -6,13 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.textfield.TextInputEditText
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -41,7 +38,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 
-class MessagesFragment(private val channelId: String, private val serverId: String) : Fragment() {
+class MessagesFragment(private val channelId: String) : Fragment() {
     private var messages = java.util.ArrayList<JSONObject>()
     lateinit var sseCon: Job
 
@@ -57,23 +54,6 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
         // |>-*
         runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
 
-        if (requireActivity().findViewById<FragmentContainerView>(R.id.msgContainer).visibility == View.GONE) {
-            (activity as AppCompatActivity).supportActionBar!!.apply {
-                setHomeAsUpIndicator(R.drawable.arrow_back)
-                setDisplayHomeAsUpEnabled(true)
-            }
-            requireActivity().findViewById<MaterialToolbar>(R.id.toolbar)
-                .setNavigationOnClickListener {
-                    if (this::sseCon.isInitialized) {
-                        sseCon.cancel()
-                        // |>-*
-                        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
-                    }
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.mainContainer, ChannelsFragment(serverId))
-                        .commit()
-                }
-        }
 
         GlobalScope.launch(Dispatchers.Default) {
             val request =

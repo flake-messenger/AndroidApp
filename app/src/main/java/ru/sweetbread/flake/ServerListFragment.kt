@@ -15,7 +15,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
-import io.ktor.client.request.post
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
@@ -25,7 +24,6 @@ import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -36,7 +34,6 @@ import org.json.JSONObject
 
 class ServerListFragment : Fragment() {
     private var servers = ArrayList<JSONObject>()
-    private lateinit var sseCoroutine: Job
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,9 +43,6 @@ class ServerListFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // |>-*
-        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
-
         requireActivity().title = "Flake"
         (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
@@ -61,7 +55,7 @@ class ServerListFragment : Fragment() {
                 View.VISIBLE
         }
 
-        sseCoroutine = GlobalScope.launch(Dispatchers.Default) {
+        GlobalScope.launch(Dispatchers.Default) {
             val request = client.prepareGet("$baseurl/dev/sse") {
                 headers {
                     append(HttpHeaders.Accept, "text/event-stream")
@@ -116,7 +110,7 @@ class ServerListFragment : Fragment() {
             }
         }
 
-        recyclerView.adapter = CustomRecyclerAdapter(servers, parentFragmentManager, sseCoroutine)
+        recyclerView.adapter = CustomRecyclerAdapter(servers, parentFragmentManager)
     }
 
     private fun getServers(): ArrayList<JSONObject> {
@@ -136,8 +130,7 @@ class ServerListFragment : Fragment() {
 
     class CustomRecyclerAdapter(
         private val servers: ArrayList<JSONObject>,
-        private val parentFragmentManager: FragmentManager,
-        private val sseCoroutine: Job
+        private val parentFragmentManager: FragmentManager
     ) :
         RecyclerView.Adapter<CustomRecyclerAdapter.MyViewHolder>() {
 
@@ -161,13 +154,11 @@ class ServerListFragment : Fragment() {
             holder.descriptionView.text = server.getString("description")
 
             holder.itemView.setOnClickListener {
-                sseCoroutine.cancel()
-                // |>-*
-                runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
-
                 parentFragmentManager
                     .beginTransaction()
-                    .replace(R.id.mainContainer, ChannelsFragment(server.getString("id")))
+                    .setCustomAnimations(R.anim.from_right, R.anim.to_left, R.anim.from_left, R.anim.to_right)
+                    .add(R.id.mainContainer, ChannelsFragment(server.getString("id")))
+                    .addToBackStack("servers")
                     .commit()
             }
         }
