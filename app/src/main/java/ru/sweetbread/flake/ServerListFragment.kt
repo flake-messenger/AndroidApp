@@ -15,6 +15,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.post
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
@@ -45,6 +46,9 @@ class ServerListFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // |>-*
+        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
+
         requireActivity().title = "Flake"
         (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
@@ -112,7 +116,7 @@ class ServerListFragment : Fragment() {
             }
         }
 
-        recyclerView.adapter = CustomRecyclerAdapter(servers, parentFragmentManager)
+        recyclerView.adapter = CustomRecyclerAdapter(servers, parentFragmentManager, sseCoroutine)
     }
 
     private fun getServers(): ArrayList<JSONObject> {
@@ -132,7 +136,8 @@ class ServerListFragment : Fragment() {
 
     class CustomRecyclerAdapter(
         private val servers: ArrayList<JSONObject>,
-        private val parentFragmentManager: FragmentManager
+        private val parentFragmentManager: FragmentManager,
+        private val sseCoroutine: Job
     ) :
         RecyclerView.Adapter<CustomRecyclerAdapter.MyViewHolder>() {
 
@@ -156,6 +161,10 @@ class ServerListFragment : Fragment() {
             holder.descriptionView.text = server.getString("description")
 
             holder.itemView.setOnClickListener {
+                sseCoroutine.cancel()
+                // |>-*
+                runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
+
                 parentFragmentManager
                     .beginTransaction()
                     .replace(R.id.mainContainer, ChannelsFragment(server.getString("id")))

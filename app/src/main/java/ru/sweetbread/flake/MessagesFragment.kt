@@ -30,6 +30,7 @@ import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -42,6 +43,7 @@ import java.util.Date
 
 class MessagesFragment(private val channelId: String, private val serverId: String) : Fragment() {
     private var messages = java.util.ArrayList<JSONObject>()
+    lateinit var sseCon: Job
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,6 +64,11 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
             }
             requireActivity().findViewById<MaterialToolbar>(R.id.toolbar)
                 .setNavigationOnClickListener {
+                    if (this::sseCon.isInitialized) {
+                        sseCon.cancel()
+                        // |>-*
+                        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
+                    }
                     parentFragmentManager.beginTransaction()
                         .replace(R.id.mainContainer, ChannelsFragment(serverId))
                         .commit()
@@ -111,7 +118,7 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
             }
         }
 
-        GlobalScope.launch(Dispatchers.Default) {
+        sseCon = GlobalScope.launch(Dispatchers.Default) {
             val request = client.prepareGet("$baseurl/dev/sse") {
                 headers {
                     append(HttpHeaders.Accept, "text/event-stream")
