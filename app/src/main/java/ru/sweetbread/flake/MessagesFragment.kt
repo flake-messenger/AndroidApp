@@ -37,19 +37,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 
-class MessagesFragment : Fragment() {
-    private var channelId = ""
+class MessagesFragment(private val channelId: String, private val serverId: String) : Fragment() {
     private var messages = java.util.ArrayList<JSONObject>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        if (arguments != null) {
-            if (requireArguments().getString("channel_id") != null) {
-                channelId = requireArguments().getString("channel_id")!!
-            }
-        }
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_messages, container, false)
     }
@@ -58,20 +52,29 @@ class MessagesFragment : Fragment() {
         val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
         val client = HttpClient()
 
-        if (channelId == "") {
-            val serverId = requireActivity().intent.extras!!.getString("server_id")
-            runBlocking {
-                val request =
-                    client.get("$baseurl/dev/servers/$serverId/channels")
-                    { headers { bearerAuth(token) } }
-                if (request.status == HttpStatusCode.OK) {
-                    val json = JSONArray(request.bodyAsText())
-                    if (json.length() != 0) channelId = json.getJSONObject(0).getString("id")
-                }
+        if (requireActivity().findViewById<FragmentContainerView>(R.id.msgContainer).visibility == View.GONE) {
+            (activity as AppCompatActivity).supportActionBar!!.apply {
+                setHomeAsUpIndicator(R.drawable.arrow_back)
+                setDisplayHomeAsUpEnabled(true)
             }
+            requireActivity().findViewById<MaterialToolbar>(R.id.toolbar)
+                .setNavigationOnClickListener {
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.mainContainer, ChannelsFragment(serverId))
+                        .commit()
+                }
         }
 
-        if (channelId == "") return
+        GlobalScope.launch(Dispatchers.Default) {
+            val request =
+                client.get("$baseurl/dev/channels/$channelId")
+                { headers { bearerAuth(token) } }
+            if (request.status == HttpStatusCode.OK) {
+                val json = JSONObject(request.bodyAsText())
+                val channelName = json.getString("name")
+                requireActivity().runOnUiThread { requireActivity().title = channelName }
+            }
+        }
 
         val mesList = view.findViewById<RecyclerView>(R.id.messages_list)
         mesList.apply {

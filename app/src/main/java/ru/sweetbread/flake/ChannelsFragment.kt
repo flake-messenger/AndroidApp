@@ -23,7 +23,8 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
-class ChannelsFragment : Fragment() {
+
+class ChannelsFragment(private val serverId: String) : Fragment() {
     private var categories = ArrayList<JSONObject>()
     lateinit var recyclerView: RecyclerView
     override fun onCreateView(
@@ -34,17 +35,42 @@ class ChannelsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val serverId = requireActivity().intent.extras!!.getString("server_id")
+        (activity as AppCompatActivity).supportActionBar!!.apply {
+            setHomeAsUpIndicator(R.drawable.arrow_back)
+            setDisplayHomeAsUpEnabled(true)
+        }
+        requireActivity().findViewById<MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener {
+            parentFragmentManager
+                .beginTransaction()
+                .replace(R.id.mainContainer, ServerListFragment())
+                .remove(this)
+                .commit()
+        }
+
+        GlobalScope.launch(Dispatchers.Default) {
+            val request =
+                client.get("$baseurl/dev/servers/$serverId")
+                { headers { bearerAuth(token) } }
+            if (request.status == HttpStatusCode.OK) {
+                val json = JSONObject(request.bodyAsText())
+                val serverName = json.getString("name")
+                activity?.runOnUiThread { activity?.title = serverName }
+            }
+        }
+
         recyclerView = view.findViewById(R.id.categories_list)
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter =
-            CategoriesRecyclerAdapter(categories, parentFragmentManager)
+            CategoriesRecyclerAdapter(
+                categories,
+                parentFragmentManager,
+                requireActivity(),
+                serverId
+            )
         getCategories(serverId)
     }
 
-    private fun getCategories(serverId: String?) {
-        val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
-
+    private fun getCategories(serverId: String) {
         GlobalScope.launch(Dispatchers.Default) {
             val client = HttpClient()
             val request =
@@ -52,60 +78,76 @@ class ChannelsFragment : Fragment() {
                 { headers { bearerAuth(token) } }
             if (request.status == HttpStatusCode.OK) {
                 categories = JSONArray(request.bodyAsText()).toArrayList()
-                requireActivity().runOnUiThread {
+                activity?.runOnUiThread {
                     recyclerView.adapter =
-                        CategoriesRecyclerAdapter(categories, parentFragmentManager)
-                    recyclerView.adapter!!.notifyDataSetChanged()
+                        activity?.let {
+                            CategoriesRecyclerAdapter(
+                                categories, parentFragmentManager,
+                                it, serverId
+                            )
+                        }
+                    recyclerView.adapter?.notifyDataSetChanged()
                 }
             }
         }
     }
-}
 
-class CategoriesRecyclerAdapter(
-    private val categories: ArrayList<JSONObject>,
-    private val fragmentManager: FragmentManager
-) : RecyclerView.Adapter<CategoriesRecyclerAdapter.MyViewHolder>() {
+    class CategoriesRecyclerAdapter(
+        private val categories: ArrayList<JSONObject>,
+        private val fragmentManager: FragmentManager,
+        private val activity: FragmentActivity,
+        private val serverId: String
+    ) : RecyclerView.Adapter<CategoriesRecyclerAdapter.MyViewHolder>() {
 
-    class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val categoryNameView: TextView = itemView.findViewById(R.id.category_name_view)
-        val channelsList: LinearLayout = itemView.findViewById(R.id.channels_list)
-        val context = itemView.context!!
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.recyclerview_channels, parent, false)
-        return MyViewHolder(itemView)
-    }
-
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val scale = holder.context.resources.displayMetrics.density
-        val server = categories[position]
-        val channels = server.getJSONArray("channels")
-
-        holder.categoryNameView.text = server.getString("name")
-        for (i in 0 until channels.length()) {
-            val channel = channels[i] as JSONObject
-            val textView = TextView(holder.context).apply {
-                text = channel.getString("name")
-                setPadding(8, 8, 8, 8)
-                height = (45 * scale + 0.5f).toInt()
-                gravity = Gravity.CENTER_VERTICAL
-                setOnClickListener {
-                    val bundle = Bundle()
-                    bundle.putString("channel_id", channel.getString("id"))
-                    val fragment2 = MessagesFragment()
-                    fragmentManager.beginTransaction()
-                        .replace(R.id.fragmentContainerView2, fragment2)
-                        .commit()
-                    fragment2.arguments = bundle
-                }
-            }
-
-            holder.channelsList.addView(textView)
+        class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val categoryNameView: TextView = itemView.findViewById(R.id.category_name_view)
+            val channelsList: LinearLayout = itemView.findViewById(R.id.channels_list)
+            val context = itemView.context!!
         }
-    }
 
-    override fun getItemCount() = categories.size
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+            val itemView = LayoutInflater.from(parent.context)
+                .inflate(R.layout.recyclerview_channels, parent, false)
+            return MyViewHolder(itemView)
+        }
+
+        override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+            val scale = holder.context.resources.displayMetrics.density
+            val category = categories[position]
+            val channels = category.getJSONArray("channels")
+
+            holder.categoryNameView.text = category.getString("name")
+            for (i in 0 until channels.length()) {
+                val channel = channels[i] as JSONObject
+                val textView = TextView(holder.context).apply {
+                    text = channel.getString("name")
+                    setPadding(8, 8, 8, 8)
+                    height = (45 * scale + 0.5f).toInt()
+                    gravity = Gravity.CENTER_VERTICAL
+                    setOnClickListener {
+                        if (activity.findViewById<FragmentContainerView>(R.id.msgContainer).visibility != View.GONE) {
+                            fragmentManager.beginTransaction()
+                                .replace(
+                                    R.id.msgContainer,
+                                    MessagesFragment(channel.getString("id"), serverId)
+                                )
+                                .commit()
+                        } else {
+                            fragmentManager.beginTransaction()
+                                .replace(
+                                    R.id.mainContainer,
+                                    MessagesFragment(channel.getString("id"), serverId)
+                                )
+                                .commit()
+                        }
+                    }
+                }
+
+                holder.channelsList.addView(textView)
+            }
+        }
+
+        override fun getItemCount() = categories.size
+    }
 }
+

@@ -35,120 +35,20 @@ import org.json.JSONObject
 const val baseurl = "https://flake.coders-squad.com/api/v1"
 val elements = HashMap<String, View>()
 class MainActivity : AppCompatActivity() {
-    private var servers = ArrayList<JSONObject>()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val recyclerView: RecyclerView = findViewById(R.id.servers_list)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        servers = getServers()
-        recyclerView.adapter = CustomRecyclerAdapter(servers)
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
-        findViewById<FloatingActionButton>(R.id.add_server_fab).setOnClickListener {
-            findViewById<FragmentContainerView>(R.id.add_server_panel).visibility = VISIBLE
-        }
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val width = displayMetrics.widthPixels / getSystem().displayMetrics.density
 
-        GlobalScope.launch(Dispatchers.Default) {
-            val client = HttpClient {
-                install(HttpTimeout) {
-                    socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
-                }
-            }
-            val request = client.prepareGet("$baseurl/dev/sse") {
-                headers {
-                    append(HttpHeaders.Accept, "text/event-stream")
-                    bearerAuth(getSharedPreferences("Account", 0).getString("token", null)!!)
-                }
-            }
-            while (true) {
-                request.execute {
-                    if (it.status != HttpStatusCode.OK) {
-                        delay(5000)
-                    } else {
-                        val channel = it.bodyAsChannel()
-                        while (true) {
-                            if (channel.availableForRead > 0) {
-                                channel.readUTF8Line()
-                                val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
-                                channel.readUTF8Line()
-
-                                val json = JSONObject(msg.drop(5))
-
-                                when (json.getString("name")) {
-                                    "SERVER_CREATED", "SERVER_JOINED" -> {
-                                        servers.add(json.getJSONObject("server"))
-                                        runOnUiThread {
-                                            recyclerView.adapter!!.notifyItemInserted(servers.size)
-                                        }
-                                    }
-
-                                    "SERVER_DELETED" -> {
-                                        val id = json.getJSONObject("server").getString("id")
-                                        runOnUiThread {
-                                            servers.forEachIndexed { index, server ->
-                                                if (server.getString("id") == id)
-                                                    recyclerView.adapter!!.notifyItemRemoved(index)
-                                            }
-                                            servers.removeIf { server -> server.getString("id") == id }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if (width < 600) {  // One-panel mode
+            findViewById<FragmentContainerView>(R.id.msgContainer).visibility = View.GONE
         }
     }
-
-    private fun getServers(): ArrayList<JSONObject> {
-        var servers = ArrayList<JSONObject>()
-        val token = getSharedPreferences("Account", 0).getString("token", null)!!
-
-        runBlocking {
-            val client = HttpClient()
-            val response =
-                client.get("$baseurl/dev/servers")
-                { headers { bearerAuth(token) } }
-            if (response.status == HttpStatusCode.OK) {
-                servers = JSONArray(response.bodyAsText()).toArrayList()
-            }
-        }
-
-        return servers
-    }
-}
-
-class CustomRecyclerAdapter(private val servers: ArrayList<JSONObject>) :
-    RecyclerView.Adapter<CustomRecyclerAdapter.MyViewHolder>() {
-
-    class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val usernameView: TextView = itemView.findViewById(R.id.username_view)
-        val descriptionView: TextView = itemView.findViewById(R.id.description_view)
-        val context = itemView.context!!
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.recyclerview_servers, parent, false)
-        return MyViewHolder(itemView)
-    }
-
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val server = servers[position]
-        elements[server.getString("id")] = holder.itemView
-
-        holder.usernameView.text = server.getString("name")
-        holder.descriptionView.text = server.getString("description")
-
-        holder.itemView.setOnClickListener {
-            val i = Intent(holder.context, ServerActivity::class.java)
-            i.putExtra("server_id", server.getString("id"))
-            startActivity(holder.context, i, null)
-        }
-    }
-
-    override fun getItemCount() = servers.size
 }
