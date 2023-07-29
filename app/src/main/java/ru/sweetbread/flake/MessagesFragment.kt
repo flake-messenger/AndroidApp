@@ -122,21 +122,25 @@ class MessagesFragment(private val channelId: String) : Fragment() {
 
                                 when (json.getString("name")) {
                                     "MESSAGE_CREATED" -> {
-                                        messages.add(0, json.getJSONObject("message"))
-                                        requireActivity().runOnUiThread {
-                                            mesList.adapter!!.notifyItemInserted(0)
-                                            mesList.smoothScrollToPosition(0)
+                                        if (json.getJSONObject("message").getString("channelId") == channelId) {
+                                            messages.add(0, json.getJSONObject("message"))
+                                            requireActivity().runOnUiThread {
+                                                mesList.adapter!!.notifyItemInserted(0)
+                                                mesList.smoothScrollToPosition(0)
+                                            }
                                         }
                                     }
 
                                     "MESSAGE_DELETED" -> {
-                                        val id = json.getJSONObject("message").getString("id")
-                                        requireActivity().runOnUiThread {
-                                            messages.forEachIndexed { index, msg ->
-                                                if (msg.getString("id") == id)
-                                                    mesList.adapter!!.notifyItemRemoved(index)
+                                        if (json.getJSONObject("message").getString("channelId") == channelId) {
+                                            val id = json.getJSONObject("message").getString("id")
+                                            requireActivity().runOnUiThread {
+                                                messages.forEachIndexed { index, msg ->
+                                                    if (msg.getString("id") == id)
+                                                        mesList.adapter!!.notifyItemRemoved(index)
+                                                }
+                                                messages.removeIf { msg -> msg.getString("id") == id }
                                             }
-                                            messages.removeIf { msg -> msg.getString("id") == id }
                                         }
                                     }
                                 }
