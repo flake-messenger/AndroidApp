@@ -52,6 +52,5 @@ dependencies {
     implementation "io.ktor:ktor-client-content-negotiation:2.3.2"
     implementation "io.ktor:ktor-client-android:2.3.2"
 
-    implementation 'com.github.discord:OverlappingPanels:0.1.5'
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
 }
