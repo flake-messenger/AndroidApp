@@ -65,7 +65,7 @@ class SignupActivity : AppCompatActivity() {
 
     fun applySignup(btn: View) {
         runBlocking {
-            val response = client.post("$baseurl/web/authorization/register") {
+            val response = client.post("$baseurl/auth/register") {
                 setBody(
                     JSONObject()
                         .put("login", loginView.text.trim().toString())

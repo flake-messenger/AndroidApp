@@ -41,7 +41,7 @@ class LoginActivity : AppCompatActivity() {
 
         runBlocking {
             val response =
-                client.post("$baseurl/web/authorization/login") {
+                client.post("$baseurl/auth/login") {
                     setBody(
                         JSONObject()
                             .put("login", login)
