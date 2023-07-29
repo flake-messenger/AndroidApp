@@ -8,7 +8,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
-import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -40,7 +39,6 @@ class LoginActivity : AppCompatActivity() {
         val login = findViewById<TextView>(R.id.loginView).text!!
         val password = findViewById<TextView>(R.id.passwordView).text!!
 
-        val client = HttpClient()
         runBlocking {
             val response =
                 client.post("$baseurl/web/authorization/login") {

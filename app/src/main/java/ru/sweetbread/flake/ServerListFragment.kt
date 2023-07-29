@@ -117,7 +117,6 @@ class ServerListFragment : Fragment() {
 
     private fun getServers(): ArrayList<JSONObject> {
         var servers = ArrayList<JSONObject>()
-        val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
 
         runBlocking {
             val response =

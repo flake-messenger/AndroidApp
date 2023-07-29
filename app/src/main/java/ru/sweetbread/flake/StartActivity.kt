@@ -3,7 +3,6 @@ package ru.sweetbread.flake
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -25,8 +24,6 @@ class StartActivity : AppCompatActivity() {
             startActivity(Intent(context, LoginActivity::class.java))
             finish()
         } else {
-            val client = HttpClient()
-
             runBlocking {
                 val response: HttpResponse = client.get("$baseurl/dev/users/self")
                 { headers { bearerAuth(token) } }

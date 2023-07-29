@@ -6,13 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.textfield.TextInputEditText
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -49,9 +50,6 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
-        val client = HttpClient()
-
         if (requireActivity().findViewById<FragmentContainerView>(R.id.msgContainer).visibility == View.GONE) {
             (activity as AppCompatActivity).supportActionBar!!.apply {
                 setHomeAsUpIndicator(R.drawable.arrow_back)
@@ -109,12 +107,6 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
         }
 
         GlobalScope.launch(Dispatchers.Default) {
-            val client = HttpClient {
-                install(HttpTimeout) {
-                    socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
-                }
-            }
-
             val request = client.prepareGet("$baseurl/dev/sse") {
                 headers {
                     append(HttpHeaders.Accept, "text/event-stream")
@@ -165,11 +157,9 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
     }
 
     private fun getMessages(channelId: String): ArrayList<JSONObject> {
-        val token = requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
         var messages = ArrayList<JSONObject>()
 
         runBlocking {
-            val client = HttpClient()
             val request =
                 client.get("$baseurl/dev/channels/$channelId/messages")
                 {headers { bearerAuth(token) }}

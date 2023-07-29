@@ -7,19 +7,24 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.ktor.client.HttpClient
+import com.google.android.material.appbar.MaterialToolbar
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.headers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -72,7 +77,6 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
 
     private fun getCategories(serverId: String) {
         GlobalScope.launch(Dispatchers.Default) {
-            val client = HttpClient()
             val request =
                 client.get("$baseurl/dev/servers/$serverId/categories")
                 { headers { bearerAuth(token) } }

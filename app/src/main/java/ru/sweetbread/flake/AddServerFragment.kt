@@ -10,7 +10,6 @@ import android.widget.TextView
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
-import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -38,9 +37,6 @@ class AddServerFragment : Fragment() {
                 (it!!.length in 5..20) and (it.contains(Regex("[0-9A-z_]+")))
         }
         joinButton.setOnClickListener {
-            val token =
-                requireActivity().getSharedPreferences("Account", 0).getString("token", null)!!
-            val client = HttpClient()
             runBlocking {
                 val request = client.post("$baseurl/dev/servers/join${linkView.text}")
                 { headers { bearerAuth(token) } }

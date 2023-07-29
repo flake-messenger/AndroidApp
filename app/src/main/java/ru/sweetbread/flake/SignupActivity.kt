@@ -7,7 +7,6 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
-import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -66,7 +65,6 @@ class SignupActivity : AppCompatActivity() {
 
     fun applySignup(btn: View) {
         runBlocking {
-            val client = HttpClient()
             val response = client.post("$baseurl/web/authorization/register") {
                 setBody(
                     JSONObject()
