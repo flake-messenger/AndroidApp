@@ -26,9 +26,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -50,6 +52,9 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // |>-*
+        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
+
         if (requireActivity().findViewById<FragmentContainerView>(R.id.msgContainer).visibility == View.GONE) {
             (activity as AppCompatActivity).supportActionBar!!.apply {
                 setHomeAsUpIndicator(R.drawable.arrow_back)
@@ -114,13 +119,13 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
                 }
             }
 
-            while (true) {
+            while (activity != null) {
                 request.execute {
                     if (it.status != HttpStatusCode.OK) {
                         delay(5000)
                     } else {
                         val channel = it.bodyAsChannel()
-                        while (true) {
+                        while ((activity != null) and (!channel.isClosedForRead)) {
                             if (channel.availableForRead > 0) {
                                 channel.readUTF8Line()
                                 val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
@@ -148,9 +153,14 @@ class MessagesFragment(private val channelId: String, private val serverId: Stri
                                         }
                                     }
                                 }
-                            } else if (channel.isClosedForRead) break
+                                delay(500)
+                            }
+                            delay(100)
                         }
+                        channel.cancel()
                     }
+                    it.cancel()
+                    return@execute
                 }
             }
         }
