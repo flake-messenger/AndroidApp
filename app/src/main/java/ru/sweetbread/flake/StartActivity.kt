@@ -12,7 +12,7 @@ import io.ktor.http.headers
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
-lateinit var selfId: String
+lateinit var self: JSONObject
 
 class StartActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +32,7 @@ class StartActivity : AppCompatActivity() {
                 val response: HttpResponse = client.get("$baseurl/dev/users/self")
                 { headers { bearerAuth(token) } }
                 if (response.status == HttpStatusCode.OK) {
-                    selfId = JSONObject(response.bodyAsText()).getString("id")
+                    self = JSONObject(response.bodyAsText())
                     startActivity(Intent(context, MainActivity::class.java))
                 } else {
                     startActivity(Intent(context, LoginActivity::class.java))

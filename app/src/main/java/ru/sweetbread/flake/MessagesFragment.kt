@@ -81,9 +81,19 @@ class MessagesFragment(private val channelId: String) : Fragment() {
 
         sendButton.apply {
             setOnClickListener {
-                runBlocking {
+                val messageText = messageInput.text
+                val message = JSONObject()
+                    .put("author", self)
+                    .put("content", messageText)
+                    .put("sent_at", System.currentTimeMillis()/2)
+                    .put("id", "0")
+                messages.add(0, message)
+                mesList.adapter!!.notifyItemInserted(0)
+                messageInput.setText("")
+
+                GlobalScope.launch(Dispatchers.Default) {
                     val json = JSONObject()
-                        .put("content", messageInput.text)
+                        .put("content", messageText)
                     val request = client
                         .post("$baseurl/dev/channels/$channelId/messages")
                         {
@@ -92,7 +102,17 @@ class MessagesFragment(private val channelId: String) : Fragment() {
                             contentType(ContentType.Application.Json)
                         }
                     if (request.status == HttpStatusCode.OK) {
-                        messageInput.setText("")
+                        requireActivity().runOnUiThread {
+                            val pos = messages.indexOf(message)
+                            messages.remove(message)
+                            mesList.adapter!!.notifyItemRemoved(pos)
+                        }
+                    } else {
+                        requireActivity().runOnUiThread {
+                            val pos = messages.indexOf(message)
+                            message.put("id", "-1")
+                            mesList.adapter!!.notifyItemChanged(pos)
+                        }
                     }
                 }
             }
@@ -193,7 +213,9 @@ class MessagesRecyclerAdapter(private val messages: ArrayList<JSONObject>) : Rec
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val view = when (viewType) {
+            -1 -> R.layout.recyclerview_error_message
             0 -> R.layout.recyclerview_my_message
+            1 -> R.layout.recyclerview_processing_message
             else -> R.layout.recyclerview_message
         }
         val itemView = LayoutInflater.from(parent.context)
@@ -203,9 +225,15 @@ class MessagesRecyclerAdapter(private val messages: ArrayList<JSONObject>) : Rec
 
     override fun getItemViewType(position: Int): Int {
         val message = messages[position]
-        if(message.getJSONObject("author").getString("id") == selfId)
-            return 0
-        return 1
+        when (message.getString("id")) {
+            "-1" -> return -1
+            "0" -> return 1
+            else -> {
+                if (message.getJSONObject("author").getString("id") == self.getString("id"))
+                    return 0
+                return 2
+            }
+        }
     }
 
     override fun getItemCount() = messages.size
