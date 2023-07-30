@@ -17,8 +17,8 @@ import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
 class SignupActivity : AppCompatActivity() {
-    lateinit var loginView: EditText
-    lateinit var passView: EditText
+    private lateinit var loginView: EditText
+    private lateinit var passView: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

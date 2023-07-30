@@ -25,6 +25,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -40,7 +41,7 @@ import java.util.Date
 
 class MessagesFragment(private val channelId: String) : Fragment() {
     private var messages = java.util.ArrayList<JSONObject>()
-    lateinit var sseCon: Job
+    private lateinit var sseCon: Job
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,6 +51,7 @@ class MessagesFragment(private val channelId: String) : Fragment() {
         return inflater.inflate(R.layout.fragment_messages, container, false)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         GlobalScope.launch(Dispatchers.Default) {
             val request =

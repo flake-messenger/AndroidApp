@@ -22,6 +22,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancel
@@ -42,6 +43,7 @@ class ServerListFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_server_list, container, false)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         activity?.title = "Flake"
         (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)

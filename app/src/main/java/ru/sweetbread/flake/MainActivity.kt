@@ -13,7 +13,7 @@ import io.ktor.client.plugins.HttpTimeout
 
 const val baseurl = "https://flake.coders-squad.com/api/v1"
 lateinit var token: String
-val client = HttpClient() {
+val client = HttpClient {
     install(HttpTimeout) {
         socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
     }
@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         when (supportFragmentManager.backStackEntryCount) {
             0 -> super.onBackPressed()

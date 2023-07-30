@@ -1,5 +1,6 @@
 package ru.sweetbread.flake
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -20,6 +21,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -29,7 +31,7 @@ import org.json.JSONObject
 
 class ChannelsFragment(private val serverId: String) : Fragment() {
     private var categories = ArrayList<JSONObject>()
-    lateinit var recyclerView: RecyclerView
+    private lateinit var recyclerView: RecyclerView
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,6 +39,7 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
         return inflater.inflate(R.layout.fragment_channels, container, false)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         (activity as AppCompatActivity).supportActionBar!!.apply {
             setHomeAsUpIndicator(R.drawable.arrow_back)
@@ -74,6 +77,8 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
         getCategories(serverId)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    @OptIn(DelicateCoroutinesApi::class)
     private fun getCategories(serverId: String) {
         GlobalScope.launch(Dispatchers.Default) {
             val request =
