@@ -192,9 +192,20 @@ class MessagesRecyclerAdapter(private val messages: ArrayList<JSONObject>) : Rec
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+        val view = when (viewType) {
+            0 -> R.layout.recyclerview_my_message
+            else -> R.layout.recyclerview_message
+        }
         val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.recyclerview_message, parent, false)
+            .inflate(view, parent, false)
         return MyViewHolder(itemView)
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        val message = messages[position]
+        if(message.getJSONObject("author").getString("id") == selfId)
+            return 0
+        return 1
     }
 
     override fun getItemCount() = messages.size

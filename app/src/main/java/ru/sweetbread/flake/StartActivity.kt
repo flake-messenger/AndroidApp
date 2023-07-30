@@ -6,9 +6,13 @@ import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headers
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
+
+lateinit var selfId: String
 
 class StartActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +32,7 @@ class StartActivity : AppCompatActivity() {
                 val response: HttpResponse = client.get("$baseurl/dev/users/self")
                 { headers { bearerAuth(token) } }
                 if (response.status == HttpStatusCode.OK) {
+                    selfId = JSONObject(response.bodyAsText()).getString("id")
                     startActivity(Intent(context, MainActivity::class.java))
                 } else {
                     startActivity(Intent(context, LoginActivity::class.java))
