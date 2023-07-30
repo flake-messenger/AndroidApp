@@ -28,8 +28,8 @@ class AddServerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val panel = requireActivity().findViewById<FragmentContainerView>(R.id.add_server_panel)
-        panel.setOnClickListener { panel.visibility = GONE }
+        val panel = activity?.findViewById<FragmentContainerView>(R.id.add_server_panel)
+        panel?.setOnClickListener { panel.visibility = GONE }
         val joinButton = view.findViewById<Button>(R.id.join_to_join_button)
         val linkView = view.findViewById<TextView>(R.id.link_to_join_view)
         linkView.doAfterTextChanged {
@@ -41,7 +41,7 @@ class AddServerFragment : Fragment() {
                 val request = client.post("$baseurl/dev/servers/join${linkView.text}")
                 { headers { bearerAuth(token) } }
                 if (request.status == HttpStatusCode.OK) {
-                    panel.visibility = GONE
+                    panel?.visibility = GONE
                 }
             }
         }

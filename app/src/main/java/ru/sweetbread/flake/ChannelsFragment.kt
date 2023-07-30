@@ -43,7 +43,7 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        requireActivity().findViewById<MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener {
+        activity?.findViewById<MaterialToolbar>(R.id.toolbar)?.setNavigationOnClickListener {
             if (parentFragmentManager.backStackEntryCount == 1) {
                 activity?.title = "Flake"
                 (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
@@ -69,7 +69,7 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
             CategoriesRecyclerAdapter(
                 categories,
                 parentFragmentManager,
-                requireActivity()
+                activity as AppCompatActivity
             )
         getCategories(serverId)
     }

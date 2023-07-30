@@ -43,7 +43,7 @@ class ServerListFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        requireActivity().title = "Flake"
+        activity?.title = "Flake"
         (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
         val recyclerView: RecyclerView = view.findViewById(R.id.servers_list)
@@ -60,8 +60,8 @@ class ServerListFragment : Fragment() {
                 headers {
                     append(HttpHeaders.Accept, "text/event-stream")
                     bearerAuth(
-                        requireActivity().getSharedPreferences("Account", 0)
-                            .getString("token", null)!!
+                        activity?.getSharedPreferences("Account", 0)
+                            ?.getString("token", null)!!
                     )
                 }
             }
@@ -82,14 +82,14 @@ class ServerListFragment : Fragment() {
                                 when (json.getString("name")) {
                                     "SERVER_CREATED", "SERVER_JOINED" -> {
                                         servers.add(json.getJSONObject("server"))
-                                        requireActivity().runOnUiThread {
+                                        activity?.runOnUiThread {
                                             recyclerView.adapter!!.notifyItemInserted(servers.size)
                                         }
                                     }
 
                                     "SERVER_DELETED" -> {
                                         val id = json.getJSONObject("server").getString("id")
-                                        requireActivity().runOnUiThread {
+                                        activity?.runOnUiThread {
                                             servers.forEachIndexed { index, server ->
                                                 if (server.getString("id") == id)
                                                     recyclerView.adapter!!.notifyItemRemoved(index)

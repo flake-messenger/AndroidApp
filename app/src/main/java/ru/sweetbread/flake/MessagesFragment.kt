@@ -58,7 +58,7 @@ class MessagesFragment(private val channelId: String) : Fragment() {
             if (request.status == HttpStatusCode.OK) {
                 val json = JSONObject(request.bodyAsText())
                 val channelName = json.getString("name")
-                requireActivity().runOnUiThread { requireActivity().title = channelName }
+                activity?.runOnUiThread { activity?.title = channelName }
             }
         }
 
@@ -98,13 +98,13 @@ class MessagesFragment(private val channelId: String) : Fragment() {
                             contentType(ContentType.Application.Json)
                         }
                     if (request.status == HttpStatusCode.OK) {
-                        requireActivity().runOnUiThread {
+                        activity?.runOnUiThread {
                             val pos = messages.indexOf(message)
                             messages.remove(message)
                             mesList.adapter!!.notifyItemRemoved(pos)
                         }
                     } else {
-                        requireActivity().runOnUiThread {
+                        activity?.runOnUiThread {
                             val pos = messages.indexOf(message)
                             message.put("id", "-1")
                             mesList.adapter!!.notifyItemChanged(pos)
@@ -140,7 +140,7 @@ class MessagesFragment(private val channelId: String) : Fragment() {
                                     "MESSAGE_CREATED" -> {
                                         if (json.getJSONObject("message").getString("channelId") == channelId) {
                                             messages.add(0, json.getJSONObject("message"))
-                                            requireActivity().runOnUiThread {
+                                            activity?.runOnUiThread {
                                                 mesList.adapter!!.notifyItemInserted(0)
                                                 mesList.smoothScrollToPosition(0)
                                             }
@@ -150,7 +150,7 @@ class MessagesFragment(private val channelId: String) : Fragment() {
                                     "MESSAGE_DELETED" -> {
                                         if (json.getJSONObject("message").getString("channelId") == channelId) {
                                             val id = json.getJSONObject("message").getString("id")
-                                            requireActivity().runOnUiThread {
+                                            activity?.runOnUiThread {
                                                 messages.forEachIndexed { index, msg ->
                                                     if (msg.getString("id") == id)
                                                         mesList.adapter!!.notifyItemRemoved(index)
