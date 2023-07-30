@@ -51,10 +51,6 @@ class MessagesFragment(private val channelId: String) : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // |>-*
-        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
-
-
         GlobalScope.launch(Dispatchers.Default) {
             val request =
                 client.get("$baseurl/dev/channels/$channelId")

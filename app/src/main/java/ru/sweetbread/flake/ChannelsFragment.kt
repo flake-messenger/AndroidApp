@@ -18,13 +18,11 @@ import com.google.android.material.appbar.MaterialToolbar
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
-import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -40,15 +38,12 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
         (activity as AppCompatActivity).supportActionBar!!.apply {
             setHomeAsUpIndicator(R.drawable.arrow_back)
             setDisplayHomeAsUpEnabled(true)
         }
 
         requireActivity().findViewById<MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener {
-            // |>-*
-            runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
             if (parentFragmentManager.backStackEntryCount == 1) {
                 activity?.title = "Flake"
                 (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
@@ -131,8 +126,6 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
                     height = (45 * scale + 0.5f).toInt()
                     gravity = Gravity.CENTER_VERTICAL
                     setOnClickListener {
-                        // |>-*
-                        runBlocking { client.post("$baseurl/dev/sse/echo") { headers { bearerAuth(token) } } }
                         if (activity.findViewById<FragmentContainerView>(R.id.msgContainer).visibility != View.GONE) {
                             fragmentManager
                                 .beginTransaction()
