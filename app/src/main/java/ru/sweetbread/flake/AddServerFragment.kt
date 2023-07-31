@@ -3,13 +3,13 @@ package ru.sweetbread.flake
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.GONE
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
+import com.google.android.material.appbar.MaterialToolbar
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -28,8 +28,14 @@ class AddServerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val panel = activity?.findViewById<FragmentContainerView>(R.id.add_server_panel)
-        panel?.setOnClickListener { panel.visibility = GONE }
+        (activity as AppCompatActivity).supportActionBar!!.apply {
+            setHomeAsUpIndicator(R.drawable.arrow_back)
+            setDisplayHomeAsUpEnabled(true)
+        }
+
+        activity?.findViewById<MaterialToolbar>(R.id.toolbar)
+            ?.setNavigationOnClickListener { back() }
+
         val joinButton = view.findViewById<Button>(R.id.join_to_join_button)
         val linkView = view.findViewById<TextView>(R.id.link_to_join_view)
         linkView.doAfterTextChanged {
@@ -40,10 +46,16 @@ class AddServerFragment : Fragment() {
             runBlocking {
                 val request = client.post("$baseurl/dev/servers/join${linkView.text}")
                 { headers { bearerAuth(token) } }
-                if (request.status == HttpStatusCode.OK) {
-                    panel?.visibility = GONE
-                }
+                if (request.status == HttpStatusCode.OK) { back() }
             }
         }
+    }
+
+    private fun back() {
+        if (parentFragmentManager.backStackEntryCount == 1) {
+            activity?.title = "Flake"
+            (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+        }
+        parentFragmentManager.popBackStack()
     }
 }

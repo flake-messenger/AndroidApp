@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,14 +32,14 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 
-class ServerListFragment : Fragment() {
+class ServersFragment : Fragment() {
     private var servers = ArrayList<JSONObject>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_server_list, container, false)
+        return inflater.inflate(R.layout.fragment_servers, container, false)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -53,8 +52,12 @@ class ServerListFragment : Fragment() {
         servers = getServers()
 
         view.findViewById<FloatingActionButton>(R.id.add_server_fab).setOnClickListener {
-            view.findViewById<FragmentContainerView>(R.id.add_server_panel).visibility =
-                View.VISIBLE
+            parentFragmentManager
+                .beginTransaction()
+                .setCustomAnimations(R.anim.from_left, R.anim.to_right, R.anim.from_right, R.anim.to_left)
+                .add(R.id.mainContainer, AddServerFragment())
+                .addToBackStack("servers")
+                .commit()
         }
 
         GlobalScope.launch(Dispatchers.Default) {
