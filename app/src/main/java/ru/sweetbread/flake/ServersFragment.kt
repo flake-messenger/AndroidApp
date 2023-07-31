@@ -7,7 +7,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -52,15 +53,13 @@ class ServersFragment : Fragment() {
         servers = getServers()
 
         view.findViewById<FloatingActionButton>(R.id.add_server_fab).setOnClickListener {
-            parentFragmentManager
-                .beginTransaction()
-                .setCustomAnimations(R.anim.from_left, R.anim.to_right, R.anim.from_right, R.anim.to_left)
-                .add(R.id.mainContainer, AddServerFragment())
-                .addToBackStack("servers")
-                .commit()
+            ConnectionManager.detach("server")
+            view.findNavController().navigate(R.id.action_serversFragment_to_addServerFragment)
         }
 
-        GlobalScope.launch(Dispatchers.Default) {
+        recyclerView.adapter = ServersRecyclerAdapter(servers, view.findNavController())
+
+        val sseCon = GlobalScope.launch(Dispatchers.Default) {
             val request = client.prepareGet("$baseurl/dev/sse") {
                 headers {
                     append(HttpHeaders.Accept, "text/event-stream")
@@ -114,8 +113,7 @@ class ServersFragment : Fragment() {
                 }
             }
         }
-
-        recyclerView.adapter = CustomRecyclerAdapter(servers, parentFragmentManager)
+        ConnectionManager.attach("server", sseCon)
     }
 
     private fun getServers(): ArrayList<JSONObject> {
@@ -133,11 +131,11 @@ class ServersFragment : Fragment() {
         return servers
     }
 
-    class CustomRecyclerAdapter(
+    class ServersRecyclerAdapter(
         private val servers: ArrayList<JSONObject>,
-        private val parentFragmentManager: FragmentManager
+        private val navController: NavController
     ) :
-        RecyclerView.Adapter<CustomRecyclerAdapter.MyViewHolder>() {
+        RecyclerView.Adapter<ServersRecyclerAdapter.MyViewHolder>() {
 
         class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val usernameView: TextView = itemView.findViewById(R.id.username_view)
@@ -159,12 +157,11 @@ class ServersFragment : Fragment() {
             holder.descriptionView.text = server.getString("description")
 
             holder.itemView.setOnClickListener {
-                parentFragmentManager
-                    .beginTransaction()
-                    .setCustomAnimations(R.anim.from_right, R.anim.to_left, R.anim.from_left, R.anim.to_right)
-                    .add(R.id.mainContainer, ChannelsFragment(server.getString("id")))
-                    .addToBackStack("servers")
-                    .commit()
+                ConnectionManager.detach("server")
+                navController.navigate(
+                    R.id.action_serversFragment_to_channelsFragment,
+                    Bundle().apply { putString("serverId", server.getString("id")) }
+                )
             }
         }
 

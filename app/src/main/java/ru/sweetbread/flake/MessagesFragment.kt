@@ -28,7 +28,6 @@ import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,9 +38,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 
-class MessagesFragment(private val channelId: String) : Fragment() {
+class MessagesFragment : Fragment() {
     private var messages = java.util.ArrayList<JSONObject>()
-    private lateinit var sseCon: Job
+    private lateinit var channelId: String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,6 +52,8 @@ class MessagesFragment(private val channelId: String) : Fragment() {
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        channelId = requireArguments().getString("channelId")!!
+
         GlobalScope.launch(Dispatchers.Default) {
             val request =
                 client.get("$baseurl/dev/channels/$channelId")
@@ -116,7 +117,7 @@ class MessagesFragment(private val channelId: String) : Fragment() {
             }
         }
 
-        sseCon = GlobalScope.launch(Dispatchers.Default) {
+        val sseCon = GlobalScope.launch(Dispatchers.Default) {
             val request = client.prepareGet("$baseurl/dev/sse") {
                 headers {
                     append(HttpHeaders.Accept, "text/event-stream")
@@ -173,6 +174,7 @@ class MessagesFragment(private val channelId: String) : Fragment() {
                 }
             }
         }
+        ConnectionManager.attach("message", sseCon)
     }
 
     private fun getMessages(channelId: String): ArrayList<JSONObject> {

@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentContainerView
 import com.google.android.material.appbar.MaterialToolbar
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import kotlinx.coroutines.Job
 
 
 const val baseurl = "https://flake.coders-squad.com/api/v1"
@@ -20,6 +21,7 @@ val client = HttpClient {
 }
 
 val elements = HashMap<String, View>()
+var onePanelMode: Boolean = true
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,9 +38,8 @@ class MainActivity : AppCompatActivity() {
         windowManager.defaultDisplay.getMetrics(displayMetrics)
         val width = displayMetrics.widthPixels / getSystem().displayMetrics.density
 
-        if (width < 600) {  // One-panel mode
-            findViewById<FragmentContainerView>(R.id.msgContainer).visibility = View.GONE
-        }
+        onePanelMode = (width < 600)
+        if (onePanelMode) {findViewById<FragmentContainerView>(R.id.msgContainer).visibility = View.GONE}
     }
 
     @Deprecated("Deprecated in Java")
@@ -51,6 +52,21 @@ class MainActivity : AppCompatActivity() {
                 supportFragmentManager.popBackStack()
             }
             else -> supportFragmentManager.popBackStack()
+        }
+    }
+}
+
+class ConnectionManager {
+    companion object {
+        private val connections = hashMapOf<String, Job>()
+
+        fun attach(key: String, connection: Job) {
+            connections[key]?.cancel()
+            connections[key] = connection
+        }
+
+        fun detach(key: String) {
+            connections[key]?.cancel()
         }
     }
 }

@@ -1,6 +1,7 @@
 package ru.sweetbread.flake
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import com.google.android.material.appbar.MaterialToolbar
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.headers
@@ -34,7 +36,7 @@ class AddServerFragment : Fragment() {
         }
 
         activity?.findViewById<MaterialToolbar>(R.id.toolbar)
-            ?.setNavigationOnClickListener { back() }
+            ?.setNavigationOnClickListener { back(view) }
 
         val joinButton = view.findViewById<Button>(R.id.join_to_join_button)
         val linkView = view.findViewById<TextView>(R.id.link_to_join_view)
@@ -46,16 +48,16 @@ class AddServerFragment : Fragment() {
             runBlocking {
                 val request = client.post("$baseurl/dev/servers/join${linkView.text}")
                 { headers { bearerAuth(token) } }
-                if (request.status == HttpStatusCode.OK) { back() }
+                if (request.status == HttpStatusCode.OK) { back(view) }
             }
         }
     }
 
-    private fun back() {
-        if (parentFragmentManager.backStackEntryCount == 1) {
-            activity?.title = "Flake"
-            (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
-        }
-        parentFragmentManager.popBackStack()
+    private fun back(view: View) {
+        activity?.title = "Flake"
+        (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+        Log.d("Meow", parentFragmentManager.backStackEntryCount.toString())
+        view.findNavController().popBackStack()
+        Log.d("Meow", parentFragmentManager.backStackEntryCount.toString())
     }
 }

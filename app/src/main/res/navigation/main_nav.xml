@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_nav"
+    app:startDestination="@id/serversFragment">
+
+    <fragment
+        android:id="@+id/serversFragment"
+        android:name="ru.sweetbread.flake.ServersFragment"
+        android:label="fragment_server_list"
+        tools:layout="@layout/fragment_servers" >
+        <action
+            android:id="@+id/action_serversFragment_to_channelsFragment"
+            app:destination="@id/channelsFragment"
+            app:enterAnim="@anim/from_right"
+            app:exitAnim="@anim/to_left"
+            app:popEnterAnim="@anim/from_left"
+            app:popExitAnim="@anim/to_right" />
+        <action
+            android:id="@+id/action_serversFragment_to_addServerFragment"
+            app:destination="@id/addServerFragment"
+            app:enterAnim="@anim/from_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/from_right"
+            app:popExitAnim="@anim/to_left"
+            app:popUpTo="@id/serversFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/channelsFragment"
+        android:name="ru.sweetbread.flake.ChannelsFragment"
+        android:label="fragment_channels"
+        tools:layout="@layout/fragment_channels" >
+        <action
+            android:id="@+id/action_channelsFragment_to_messagesFragment"
+            app:destination="@id/messagesFragment"
+            app:enterAnim="@anim/from_right"
+            app:exitAnim="@anim/to_left"
+            app:popEnterAnim="@anim/from_left"
+            app:popExitAnim="@anim/to_right" />
+    </fragment>
+    <fragment
+        android:id="@+id/messagesFragment"
+        android:name="ru.sweetbread.flake.MessagesFragment"
+        android:label="fragment_messages"
+        tools:layout="@layout/fragment_messages" />
+    <fragment
+        android:id="@+id/addServerFragment"
+        android:name="ru.sweetbread.flake.AddServerFragment"
+        android:label="fragment_add_server"
+        tools:layout="@layout/fragment_add_server" />
+</navigation>

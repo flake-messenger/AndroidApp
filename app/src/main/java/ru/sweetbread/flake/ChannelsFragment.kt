@@ -10,9 +10,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.FragmentManager
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
@@ -29,9 +29,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 
-class ChannelsFragment(private val serverId: String) : Fragment() {
+class ChannelsFragment : Fragment() {
     private var categories = ArrayList<JSONObject>()
     private lateinit var recyclerView: RecyclerView
+    private lateinit var serverId: String
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -50,10 +52,13 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
             if (parentFragmentManager.backStackEntryCount == 1) {
                 activity?.title = "Flake"
                 (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+            } else {
+                if (onePanelMode) ConnectionManager.detach("message")
             }
             parentFragmentManager.popBackStack()
         }
 
+        serverId = requireArguments().getString("serverId")!!
 
         GlobalScope.launch(Dispatchers.Default) {
             val request =
@@ -71,8 +76,8 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
         recyclerView.adapter =
             CategoriesRecyclerAdapter(
                 categories,
-                parentFragmentManager,
-                activity as AppCompatActivity
+                activity?.supportFragmentManager!!,
+                view.findNavController()
             )
         getCategories(serverId)
     }
@@ -90,7 +95,7 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
                     recyclerView.adapter =
                         activity?.let {
                             CategoriesRecyclerAdapter(
-                                categories, parentFragmentManager, it
+                                categories, it.supportFragmentManager, view?.findNavController()!!
                             )
                         }
                     recyclerView.adapter?.notifyDataSetChanged()
@@ -102,7 +107,7 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
     class CategoriesRecyclerAdapter(
         private val categories: ArrayList<JSONObject>,
         private val fragmentManager: FragmentManager,
-        private val activity: FragmentActivity
+        private val navController: NavController
     ) : RecyclerView.Adapter<CategoriesRecyclerAdapter.MyViewHolder>() {
 
         class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -131,19 +136,19 @@ class ChannelsFragment(private val serverId: String) : Fragment() {
                     height = (45 * scale + 0.5f).toInt()
                     gravity = Gravity.CENTER_VERTICAL
                     setOnClickListener {
-                        if (activity.findViewById<FragmentContainerView>(R.id.msgContainer).visibility != View.GONE) {
+                        val args = Bundle().apply { putString("channelId", channel.getString("id")) }
+
+                        if (!onePanelMode) {
                             fragmentManager
                                 .beginTransaction()
                                 .setCustomAnimations(R.anim.from_down, R.anim.to_down)
-                                .replace(R.id.msgContainer, MessagesFragment(channel.getString("id")))
+                                .replace(R.id.msgContainer, MessagesFragment().apply{ arguments = args })
                                 .commit()
                         } else {
-                            fragmentManager
-                                .beginTransaction()
-                                .setCustomAnimations(R.anim.from_right, R.anim.to_left, R.anim.from_left, R.anim.to_right)
-                                .add(R.id.mainContainer, MessagesFragment(channel.getString("id")))
-                                .addToBackStack("channels")
-                                .commit()
+                            navController.navigate(
+                                R.id.action_channelsFragment_to_messagesFragment,
+                                args
+                            )
                         }
                     }
                 }

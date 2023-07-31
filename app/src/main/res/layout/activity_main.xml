@@ -32,12 +32,12 @@
 
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/mainContainer"
-                android:name="ru.sweetbread.flake.ServersFragment"
+                android:name="androidx.navigation.fragment.NavHostFragment"
+                app:defaultNavHost="true"
+                app:navGraph="@navigation/main_nav"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:colorBackground"
-                android:backgroundTint="#40000000"
-                android:backgroundTintMode="multiply" />
+                android:layout_height="match_parent" />
+
         </LinearLayout>
 
         <androidx.fragment.app.FragmentContainerView
