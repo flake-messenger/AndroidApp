@@ -46,7 +46,7 @@ class AddServerFragment : Fragment() {
         }
         joinButton.setOnClickListener {
             runBlocking {
-                val request = client.post("$baseurl/dev/servers/join${linkView.text}")
+                val request = client.post("$baseurl/dev/servers/join/${linkView.text}")
                 { headers { bearerAuth(token) } }
                 if (request.status == HttpStatusCode.OK) { back(view) }
             }
