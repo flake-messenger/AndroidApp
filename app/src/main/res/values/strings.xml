@@ -65,4 +65,5 @@
     <string name="login_regex_limits">"Login must have only lowercase letters, underscore, numbers, minus and dot"</string>
     <string name="password_length_limit">Password must be in 4 to 40 symbols</string>
     <string name="same_pass">Passwords must be the same</string>
+    <string name="channel_placeholder">Cool channel</string>
 </resources>

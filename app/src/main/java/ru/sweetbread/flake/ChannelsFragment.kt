@@ -2,7 +2,6 @@ package ru.sweetbread.flake
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,13 +23,15 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import splitties.views.onClick
 
 
 class ChannelsFragment : Fragment() {
-    private var categories = ArrayList<JSONObject>()
+    private var hiearchy = ArrayList<JSONObject>()
     private lateinit var recyclerView: RecyclerView
     private lateinit var serverId: String
 
@@ -75,89 +76,164 @@ class ChannelsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter =
             CategoriesRecyclerAdapter(
-                categories,
+                hiearchy,
                 activity?.supportFragmentManager!!,
                 view.findNavController()
             )
-        getCategories(serverId)
+        getHierarchy(serverId)
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     @OptIn(DelicateCoroutinesApi::class)
-    private fun getCategories(serverId: String) {
-        GlobalScope.launch(Dispatchers.Default) {
+    private fun getHierarchy(serverId: String) {
+        lateinit var channels: ArrayList<JSONObject>
+        lateinit var categories: ArrayList<JSONObject>
+
+        val channelsCon = GlobalScope.launch(Dispatchers.Default) {
+            val request =
+                client.get("$baseurl/dev/servers/$serverId/channels")
+                { headers { bearerAuth(token) } }
+            if (request.status == HttpStatusCode.OK) {
+                channels = JSONArray(request.bodyAsText()).toArrayList()
+                    .filter{ it.getString("category_id") == "null" } as ArrayList<JSONObject>
+            }
+        }
+
+        val categoriesCon = GlobalScope.launch(Dispatchers.Default) {
             val request =
                 client.get("$baseurl/dev/servers/$serverId/categories")
                 { headers { bearerAuth(token) } }
             if (request.status == HttpStatusCode.OK) {
                 categories = JSONArray(request.bodyAsText()).toArrayList()
-                activity?.runOnUiThread {
-                    recyclerView.adapter =
-                        activity?.let {
-                            CategoriesRecyclerAdapter(
-                                categories, it.supportFragmentManager, view?.findNavController()!!
-                            )
-                        }
-                    recyclerView.adapter?.notifyDataSetChanged()
-                }
+            }
+        }
+
+        GlobalScope.launch(Dispatchers.Default) {
+            hiearchy.clear()
+
+            while (!channelsCon.isCompleted) { delay(50) }
+            channels.forEach {
+                hiearchy.add(
+                    JSONObject()
+                        .put("type", "channel")
+                        .put("channel", it)
+                )
+            }
+
+            while (!categoriesCon.isCompleted) { delay(50) }
+            categories.forEach {
+                hiearchy.add(
+                    JSONObject()
+                        .put("type", "category")
+                        .put("category", it)
+                )
+            }
+
+            activity?.runOnUiThread {
+                recyclerView.adapter =
+                    activity?.let {
+                        CategoriesRecyclerAdapter(
+                            hiearchy, it.supportFragmentManager, view?.findNavController()!!
+                        )
+                    }
+                recyclerView.adapter?.notifyItemRangeInserted(0, hiearchy.size)
             }
         }
     }
 
     class CategoriesRecyclerAdapter(
-        private val categories: ArrayList<JSONObject>,
+        private val hierarchy: ArrayList<JSONObject>,
         private val fragmentManager: FragmentManager,
         private val navController: NavController
-    ) : RecyclerView.Adapter<CategoriesRecyclerAdapter.MyViewHolder>() {
+    ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-        class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        class ChannelHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val nameView: TextView = itemView.findViewById(R.id.channelName)
+        }
+
+        class CategoryHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val categoryNameView: TextView = itemView.findViewById(R.id.category_name_view)
             val channelsList: LinearLayout = itemView.findViewById(R.id.channels_list)
             val context = itemView.context!!
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-            val itemView = LayoutInflater.from(parent.context)
-                .inflate(R.layout.recyclerview_channels, parent, false)
-            return MyViewHolder(itemView)
-        }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            return when (viewType) {
+                0 -> {
+                    val itemView = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.recyclerview_channel, parent, false)
 
-        override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-            val scale = holder.context.resources.displayMetrics.density
-            val category = categories[position]
-            val channels = category.getJSONArray("channels")
-
-            holder.categoryNameView.text = category.getString("name")
-            for (i in 0 until channels.length()) {
-                val channel = channels[i] as JSONObject
-                val textView = TextView(holder.context).apply {
-                    text = channel.getString("name")
-                    setPadding(8, 8, 8, 8)
-                    height = (45 * scale + 0.5f).toInt()
-                    gravity = Gravity.CENTER_VERTICAL
-                    setOnClickListener {
-                        val args = Bundle().apply { putString("channelId", channel.getString("id")) }
-
-                        if (!onePanelMode) {
-                            fragmentManager
-                                .beginTransaction()
-                                .setCustomAnimations(R.anim.from_down, R.anim.to_down)
-                                .replace(R.id.msgContainer, MessagesFragment().apply{ arguments = args })
-                                .commit()
-                        } else {
-                            navController.navigate(
-                                R.id.action_channelsFragment_to_messagesFragment,
-                                args
-                            )
-                        }
-                    }
+                    ChannelHolder(itemView)
                 }
 
-                holder.channelsList.addView(textView)
+                1 -> {
+                    val itemView = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.recyclerview_category, parent, false)
+
+                    CategoryHolder(itemView)
+                }
+
+                else -> {throw IndexOutOfBoundsException("Type unknown: $viewType")}
             }
         }
 
-        override fun getItemCount() = categories.size
+        override fun getItemViewType(position: Int): Int {
+            return when (hierarchy[position].getString("type")) {
+                "channel" -> 0
+                "category" -> 1
+                else -> -1
+            }
+        }
+
+        @SuppressLint("InflateParams")
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            fun clickListener(channel: JSONObject) {
+                val args = Bundle().apply { putString("channelId", channel.getString("id")) }
+
+                if (!onePanelMode) {
+                    fragmentManager
+                        .beginTransaction()
+                        .setCustomAnimations(R.anim.from_down, R.anim.to_down)
+                        .replace(R.id.msgContainer, MessagesFragment().apply{ arguments = args })
+                        .commit()
+                } else {
+                    navController.navigate(
+                        R.id.action_channelsFragment_to_messagesFragment,
+                        args
+                    )
+                }
+            }
+
+            when (holder.itemViewType) {
+                0 -> {
+                    val channelHolder = holder as ChannelHolder
+
+                    val channel = hierarchy[position].getJSONObject("channel")
+                    channelHolder.nameView.text = channel.getString("name")
+                    channelHolder.itemView.onClick { clickListener(channel) }
+                }
+                1 -> {
+                    val categoryHolder = holder as CategoryHolder
+
+                    val category = hierarchy[position].getJSONObject("category")
+                    val channels = category.getJSONArray("channels")
+
+                    categoryHolder.categoryNameView.text = category.getString("name")
+                    for (i in 0 until channels.length()) {
+                        val channel = channels[i] as JSONObject
+                        val textView = LayoutInflater.from(categoryHolder.itemView.context)
+                            .inflate(R.layout.recyclerview_channel, null)
+                            .apply {
+                                findViewById<TextView>(R.id.channelName).text = channel.getString("name")
+                                onClick {clickListener(channel)}
+                            }
+
+                        categoryHolder.channelsList.addView(textView)
+                    }
+                }
+            }
+        }
+
+        override fun getItemCount() = hierarchy.size
     }
 }
 
