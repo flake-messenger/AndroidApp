@@ -54,6 +54,7 @@ dependencies {
     implementation "io.ktor:ktor-client-android:2.3.2"
 
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
+    implementation 'com.squareup.picasso:picasso:2.8'
 
     implementation "com.louiscad.splitties:splitties-fun-pack-android-base-with-views-dsl:3.0.0"
 }

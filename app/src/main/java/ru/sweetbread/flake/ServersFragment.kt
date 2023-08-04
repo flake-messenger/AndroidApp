@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -12,6 +13,7 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.squareup.picasso.Picasso
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -140,12 +142,13 @@ class ServersFragment : Fragment() {
         class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val usernameView: TextView = itemView.findViewById(R.id.username_view)
             val descriptionView: TextView = itemView.findViewById(R.id.description_view)
+            val avatarView: ImageView = itemView.findViewById(R.id.serverAvatarView)
             val context = itemView.context!!
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
             val itemView = LayoutInflater.from(parent.context)
-                .inflate(R.layout.recyclerview_servers, parent, false)
+                .inflate(R.layout.recyclerview_server, parent, false)
             return MyViewHolder(itemView)
         }
 
@@ -155,6 +158,10 @@ class ServersFragment : Fragment() {
 
             holder.usernameView.text = server.getString("name")
             holder.descriptionView.text = server.getString("description")
+
+            Picasso.get()
+                .load("https://flake.coders-squad.com/api/v1/cdn/servers/${server.getString("id")}")
+                .into(holder.avatarView)
 
             holder.itemView.setOnClickListener {
                 ConnectionManager.detach("server")
