@@ -57,4 +57,6 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.8'
 
     implementation "com.louiscad.splitties:splitties-fun-pack-android-base-with-views-dsl:3.0.0"
+
+    implementation "ch.acra:acra-http:5.11.0"
 }
