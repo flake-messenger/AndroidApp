@@ -36,7 +36,7 @@ import org.json.JSONObject
 
 
 class ServersFragment : Fragment() {
-    private var servers = ArrayList<JSONObject>()
+    private var servers = mutableListOf<JSONObject>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -118,15 +118,15 @@ class ServersFragment : Fragment() {
         ConnectionManager.attach("server", sseCon)
     }
 
-    private fun getServers(): ArrayList<JSONObject> {
-        var servers = ArrayList<JSONObject>()
+    private fun getServers(): MutableList<JSONObject> {
+        var servers = mutableListOf<JSONObject>()
 
         runBlocking {
             val response =
                 client.get("$baseurl/dev/servers")
                 { headers { bearerAuth(token) } }
             if (response.status == HttpStatusCode.OK) {
-                servers = JSONArray(response.bodyAsText()).toArrayList()
+                servers = JSONArray(response.bodyAsText()).toArrayList().toMutableList()
             }
         }
 
@@ -134,7 +134,7 @@ class ServersFragment : Fragment() {
     }
 
     class ServersRecyclerAdapter(
-        private val servers: ArrayList<JSONObject>,
+        private val servers: MutableList<JSONObject>,
         private val navController: NavController
     ) :
         RecyclerView.Adapter<ServersRecyclerAdapter.MyViewHolder>() {

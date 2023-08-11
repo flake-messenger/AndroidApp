@@ -39,7 +39,7 @@ import java.util.Date
 
 
 class MessagesFragment : Fragment() {
-    private var messages = java.util.ArrayList<JSONObject>()
+    private var messages = mutableListOf<JSONObject>()
     private lateinit var channelId: String
 
     override fun onCreateView(
@@ -177,15 +177,15 @@ class MessagesFragment : Fragment() {
         ConnectionManager.attach("message", sseCon)
     }
 
-    private fun getMessages(channelId: String): ArrayList<JSONObject> {
-        var messages = ArrayList<JSONObject>()
+    private fun getMessages(channelId: String): MutableList<JSONObject> {
+        var messages = mutableListOf<JSONObject>()
 
         runBlocking {
             val request =
                 client.get("$baseurl/dev/channels/$channelId/messages")
                 {headers { bearerAuth(token) }}
             if (request.status == HttpStatusCode.OK) {
-                messages = JSONArray(request.bodyAsText()).toArrayList()
+                messages = JSONArray(request.bodyAsText()).toArrayList().toMutableList()
             }
         }
 
@@ -193,8 +193,8 @@ class MessagesFragment : Fragment() {
     }
 }
 
-fun JSONArray.toArrayList(): ArrayList<JSONObject> {
-    val list = arrayListOf<JSONObject>()
+fun JSONArray.toArrayList(): MutableList<JSONObject> {
+    val list = mutableListOf<JSONObject>()
     for (i in 0 until this.length()) {
         list.add(this.getJSONObject(i))
     }
@@ -202,7 +202,7 @@ fun JSONArray.toArrayList(): ArrayList<JSONObject> {
     return list
 }
 
-class MessagesRecyclerAdapter(private val messages: ArrayList<JSONObject>) : RecyclerView.Adapter<MessagesRecyclerAdapter.MyViewHolder>() {
+class MessagesRecyclerAdapter(private val messages: MutableList<JSONObject>) : RecyclerView.Adapter<MessagesRecyclerAdapter.MyViewHolder>() {
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val timeView: TextView = itemView.findViewById(R.id.time_view)

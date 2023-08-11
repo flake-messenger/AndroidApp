@@ -31,7 +31,7 @@ import splitties.views.onClick
 
 
 class ChannelsFragment : Fragment() {
-    private var hiearchy = ArrayList<JSONObject>()
+    private var hiearchy = mutableListOf<JSONObject>()
     private lateinit var recyclerView: RecyclerView
     private lateinit var serverId: String
 
@@ -85,16 +85,16 @@ class ChannelsFragment : Fragment() {
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun getHierarchy(serverId: String) {
-        lateinit var channels: ArrayList<JSONObject>
-        lateinit var categories: ArrayList<JSONObject>
+        lateinit var channels: MutableList<JSONObject>
+        lateinit var categories: MutableList<JSONObject>
 
         val channelsCon = GlobalScope.launch(Dispatchers.Default) {
             val request =
                 client.get("$baseurl/dev/servers/$serverId/channels")
                 { headers { bearerAuth(token) } }
             if (request.status == HttpStatusCode.OK) {
-                channels = JSONArray(request.bodyAsText()).toArrayList()
-                    .filter{ it.getString("category_id") == "null" } as ArrayList<JSONObject>
+                channels = JSONArray(request.bodyAsText()).toArrayList().toMutableList()
+                    .filter{ it.getString("category_id") == "null" }.toMutableList()
             }
         }
 
@@ -103,7 +103,7 @@ class ChannelsFragment : Fragment() {
                 client.get("$baseurl/dev/servers/$serverId/categories")
                 { headers { bearerAuth(token) } }
             if (request.status == HttpStatusCode.OK) {
-                categories = JSONArray(request.bodyAsText()).toArrayList()
+                categories = JSONArray(request.bodyAsText()).toArrayList().toMutableList()
             }
         }
 
@@ -141,7 +141,7 @@ class ChannelsFragment : Fragment() {
     }
 
     class CategoriesRecyclerAdapter(
-        private val hierarchy: ArrayList<JSONObject>,
+        private val hierarchy: MutableList<JSONObject>,
         private val fragmentManager: FragmentManager,
         private val navController: NavController
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
