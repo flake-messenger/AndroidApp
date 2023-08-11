@@ -1,5 +1,11 @@
 package ru.sweetbread.flake
 
+import android.graphics.Bitmap
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Shader
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.squareup.picasso.Picasso
+import com.squareup.picasso.Transformation
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -161,6 +168,7 @@ class ServersFragment : Fragment() {
 
             Picasso.get()
                 .load("https://flake.coders-squad.com/api/v1/cdn/servers/${server.getString("id")}")
+                .transform(RoundedTransformation(150, 0))
                 .into(holder.avatarView)
 
             holder.itemView.setOnClickListener {
@@ -173,5 +181,36 @@ class ServersFragment : Fragment() {
         }
 
         override fun getItemCount() = servers.size
+    }
+
+    class RoundedTransformation(private val radius: Int, private val margin: Int) : Transformation {
+        override fun transform(source: Bitmap): Bitmap {
+            val paint = Paint()
+            paint.isAntiAlias = true
+            paint.shader = BitmapShader(
+                source, Shader.TileMode.CLAMP,
+                Shader.TileMode.CLAMP
+            )
+            val output = Bitmap.createBitmap(
+                source.width, source.height,
+                Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(output)
+            canvas.drawRoundRect(
+                RectF(
+                    margin.toFloat(), margin.toFloat(), (source.width - margin).toFloat(),
+                    (
+                            source.height - margin).toFloat()
+                ), radius.toFloat(), radius.toFloat(), paint
+            )
+            if (source != output) {
+                source.recycle()
+            }
+            return output
+        }
+
+        override fun key(): String {
+            return "rounded(r=$radius, m=$margin)"
+        }
     }
 }
