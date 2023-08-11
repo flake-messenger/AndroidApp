@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
+import com.google.android.material.textfield.TextInputEditText
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -22,13 +23,13 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        val loginView = findViewById<TextView>(R.id.loginView)
-        val passwordView = findViewById<TextView>(R.id.passwordView)
+        val loginView = findViewById<TextInputEditText>(R.id.loginView)
+        val passwordView = findViewById<TextInputEditText>(R.id.passwordView)
         val button = findViewById<Button>(R.id.confirmBtn)
 
         fun validate() {
-            button.isEnabled = (loginView.text.length in 5..20) and
-                    (loginView.text.contains(Regex("[0-9a-z._-]+"))) and (passwordView.text.length in 4..30)
+            button.isEnabled = (loginView.text!!.length in 5..20) and
+                    (loginView.text!!.contains(Regex("[0-9a-z._-]+"))) and (passwordView.text!!.length in 4..30)
         }
 
         loginView.doAfterTextChanged { validate() }

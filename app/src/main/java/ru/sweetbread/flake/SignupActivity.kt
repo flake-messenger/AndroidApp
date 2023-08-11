@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
+import com.google.android.material.textfield.TextInputEditText
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -17,8 +18,8 @@ import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
 class SignupActivity : AppCompatActivity() {
-    private lateinit var loginView: EditText
-    private lateinit var passView: EditText
+    private lateinit var loginView: TextInputEditText
+    private lateinit var passView: TextInputEditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +39,7 @@ class SignupActivity : AppCompatActivity() {
             } else {
                 loginView.error = null
                 btn.isEnabled = ((passView.error == null) and (confPassView.error == null)
-                        and passView.text.isNotBlank() and confPassView.text.isNotBlank())
+                        and passView.text!!.isNotBlank() and confPassView.text.isNotBlank())
             }
         }
         passView.doAfterTextChanged {
@@ -48,17 +49,17 @@ class SignupActivity : AppCompatActivity() {
             } else {
                 passView.error = null
                 btn.isEnabled = ((loginView.error == null) and (confPassView.error == null)
-                        and loginView.text.isNotBlank() and confPassView.text.isNotBlank())
+                        and loginView.text!!.isNotBlank() and confPassView.text.isNotBlank())
             }
         }
         confPassView.doAfterTextChanged {
             btn.isEnabled = false
-            if (it!!.toString() != passView.text.toString()) {
+            if (it!!.toString() != passView.text!!.toString()) {
                 confPassView.error = getString(R.string.same_pass)
             } else {
                 confPassView.error = null
                 btn.isEnabled = ((passView.error == null) and (loginView.error == null)
-                        and loginView.text.isNotBlank() and passView.text.isNotBlank())
+                        and loginView.text!!.isNotBlank() and passView.text!!.isNotBlank())
             }
         }
     }
@@ -68,9 +69,9 @@ class SignupActivity : AppCompatActivity() {
             val response = client.post("$baseurl/auth/register") {
                 setBody(
                     JSONObject()
-                        .put("login", loginView.text.trim().toString())
-                        .put("username", loginView.text.trim().toString())
-                        .put("password", passView.text.trim().toString())
+                        .put("login", loginView.text!!.trim().toString())
+                        .put("username", loginView.text!!.trim().toString())
+                        .put("password", passView.text!!.trim().toString())
                         .put("locale", "RU")
                         .toString()
                 )

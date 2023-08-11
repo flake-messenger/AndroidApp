@@ -6,57 +6,80 @@
     android:layout_height="match_parent"
     tools:context=".SignupActivity">
 
-    <EditText
-        android:autofillHints="login"
-        android:id="@+id/loginView"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/loginBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="@string/login"
-        android:inputType="text"
-        app:layout_constraintBottom_toTopOf="@+id/passwordView"
+        app:layout_constraintBottom_toTopOf="@id/passwordBox"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintVertical_chainStyle="packed"
+        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense">
 
-    <EditText
-        android:autofillHints="password"
-        android:id="@+id/passwordView"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/loginView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minWidth="256dp"
+            android:minHeight="48dp"
+            android:ems="10"
+            android:gravity="center"
+            android:hint="@string/login"
+            android:inputType="text"
+            android:autofillHints="login"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/passwordBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="@string/password"
-        android:inputType="textPassword"
-        app:layout_constraintBottom_toTopOf="@+id/confirmPasswordView"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/confirmPasswordBox"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loginView"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintTop_toBottomOf="@+id/loginBox"
+        app:layout_constraintVertical_bias="0.5"
+        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/passwordView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minWidth="256dp"
+            android:autofillHints="password"
+            android:ems="10"
+            android:gravity="center"
+            android:hint="@string/password"
+            android:inputType="textPassword"
+            android:minHeight="48dp"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <EditText
-        android:autofillHints="password"
-        android:id="@+id/confirmPasswordView"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/confirmPasswordBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="@string/confirm_password"
-        android:inputType="textPassword"
         app:layout_constraintBottom_toTopOf="@+id/confirmBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/passwordView"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintTop_toBottomOf="@id/passwordBox"
+        app:layout_constraintVertical_bias="0.5"
+        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/confirmPasswordView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minWidth="256dp"
+            android:ems="10"
+            android:gravity="center"
+            android:hint="@string/confirm_password"
+            android:inputType="textPassword"
+            android:autofillHints="password"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/confirmBtn"
@@ -70,7 +93,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/confirmPasswordView"
+        app:layout_constraintTop_toBottomOf="@id/confirmPasswordBox"
         app:layout_constraintVertical_bias="0.5" />
 
     <Button
