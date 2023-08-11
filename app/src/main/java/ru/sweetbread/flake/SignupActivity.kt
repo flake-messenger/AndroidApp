@@ -80,6 +80,7 @@ class SignupActivity : AppCompatActivity() {
             if (response.status == HttpStatusCode.OK) {
                 val json = JSONObject(response.bodyAsText())
                 val token = json.getString("token")
+                self = json.getJSONObject("user")
 
                 val editor = getSharedPreferences("Account", 0).edit()
                 editor.putString("token", token)

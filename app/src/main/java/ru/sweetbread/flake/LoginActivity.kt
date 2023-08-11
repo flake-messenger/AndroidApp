@@ -55,6 +55,7 @@ class LoginActivity : AppCompatActivity() {
             if (response.status == HttpStatusCode.OK) {
                 val json = JSONObject(response.bodyAsText())
                 val token = json.getString("token")
+                self = json.getJSONObject("user")
                 Toast.makeText(this@LoginActivity, R.string.success, Toast.LENGTH_SHORT).show()
 
                 val editor = getSharedPreferences("Account", 0).edit()
