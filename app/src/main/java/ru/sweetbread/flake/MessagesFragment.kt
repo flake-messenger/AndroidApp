@@ -11,25 +11,20 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
+import com.rasalexman.kdispatcher.KDispatcher
+import com.rasalexman.kdispatcher.subscribe
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
-import io.ktor.client.request.prepareGet
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.utils.io.cancel
-import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
@@ -117,64 +112,30 @@ class MessagesFragment : Fragment() {
             }
         }
 
-        val sseCon = GlobalScope.launch(Dispatchers.Default) {
-            val request = client.prepareGet("$baseurl/dev/sse") {
-                headers {
-                    append(HttpHeaders.Accept, "text/event-stream")
-                    bearerAuth(token)
-                }
-            }
-
-            while (activity != null) {
-                request.execute {
-                    if (it.status != HttpStatusCode.OK) {
-                        delay(5000)
-                    } else {
-                        val channel = it.bodyAsChannel()
-                        while ((activity != null) and (!channel.isClosedForRead)) {
-                            if (channel.availableForRead > 0) {
-                                channel.readUTF8Line()
-                                val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
-                                channel.readUTF8Line()
-
-                                val json = JSONObject(msg.drop(5))
-
-                                when (json.getString("name")) {
-                                    "MESSAGE_CREATED" -> {
-                                        if (json.getJSONObject("message").getString("channelId") == channelId) {
-                                            messages.add(0, json.getJSONObject("message"))
-                                            activity?.runOnUiThread {
-                                                mesList.adapter!!.notifyItemInserted(0)
-                                                mesList.smoothScrollToPosition(0)
-                                            }
-                                        }
-                                    }
-
-                                    "MESSAGE_DELETED" -> {
-                                        if (json.getJSONObject("message").getString("channelId") == channelId) {
-                                            val id = json.getJSONObject("message").getString("id")
-                                            activity?.runOnUiThread {
-                                                messages.forEachIndexed { index, msg ->
-                                                    if (msg.getString("id") == id)
-                                                        mesList.adapter!!.notifyItemRemoved(index)
-                                                }
-                                                messages.removeIf { msg -> msg.getString("id") == id }
-                                            }
-                                        }
-                                    }
-                                }
-                                delay(500)
-                            }
-                            delay(100)
-                        }
-                        channel.cancel()
-                    }
-                    it.cancel()
-                    return@execute
+        KDispatcher.subscribe<JSONObject>("MESSAGE_CREATED") {
+            val json = it.data!!
+            if (json.getJSONObject("message").getString("channelId") == channelId) {
+                messages.add(0, json.getJSONObject("message"))
+                activity?.runOnUiThread {
+                    mesList.adapter!!.notifyItemInserted(0)
+                    mesList.smoothScrollToPosition(0)
                 }
             }
         }
-        ConnectionManager.attach("message", sseCon)
+
+        KDispatcher.subscribe<JSONObject>("MESSAGE_DELETED") {
+            val json = it.data!!
+            if (json.getJSONObject("message").getString("channelId") == channelId) {
+                val id = json.getJSONObject("message").getString("id")
+                activity?.runOnUiThread {
+                    messages.forEachIndexed { index, msg ->
+                        if (msg.getString("id") == id)
+                            mesList.adapter!!.notifyItemRemoved(index)
+                    }
+                    messages.removeIf { msg -> msg.getString("id") == id }
+                }
+            }
+        }
     }
 
     private fun getMessages(channelId: String): MutableList<JSONObject> {

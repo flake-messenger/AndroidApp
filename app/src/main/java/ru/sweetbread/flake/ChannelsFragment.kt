@@ -53,8 +53,6 @@ class ChannelsFragment : Fragment() {
             if (parentFragmentManager.backStackEntryCount == 1) {
                 activity?.title = "Flake"
                 (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
-            } else {
-                if (onePanelMode) ConnectionManager.detach("message")
             }
             parentFragmentManager.popBackStack()
         }

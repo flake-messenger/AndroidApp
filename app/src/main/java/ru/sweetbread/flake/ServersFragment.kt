@@ -19,24 +19,15 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.rasalexman.kdispatcher.KDispatcher
+import com.rasalexman.kdispatcher.subscribe
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Transformation
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
-import io.ktor.client.request.prepareGet
-import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.cancel
-import io.ktor.utils.io.readUTF8Line
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
@@ -52,7 +43,6 @@ class ServersFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_servers, container, false)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         activity?.title = "Flake"
         (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(false)
@@ -62,67 +52,36 @@ class ServersFragment : Fragment() {
         servers = getServers()
 
         view.findViewById<FloatingActionButton>(R.id.add_server_fab).setOnClickListener {
-            ConnectionManager.detach("server")
             view.findNavController().navigate(R.id.action_serversFragment_to_addServerFragment)
         }
 
         recyclerView.adapter = ServersRecyclerAdapter(servers, view.findNavController())
 
-        val sseCon = GlobalScope.launch(Dispatchers.Default) {
-            val request = client.prepareGet("$baseurl/dev/sse") {
-                headers {
-                    append(HttpHeaders.Accept, "text/event-stream")
-                    bearerAuth(
-                        activity?.getSharedPreferences("Account", 0)
-                            ?.getString("token", null)!!
-                    )
-                }
-            }
-            while (activity != null) {
-                request.execute {
-                    if (it.status != HttpStatusCode.OK) {
-                        delay(5000)
-                    } else {
-                        val channel = it.bodyAsChannel()
-                        while ((activity != null) and (!channel.isClosedForRead)) {
-                            if (channel.availableForRead > 0) {
-                                channel.readUTF8Line()
-                                val msg = channel.readUTF8Line(Int.MAX_VALUE)!!
-                                channel.readUTF8Line()
-
-                                val json = JSONObject(msg.drop(5))
-
-                                when (json.getString("name")) {
-                                    "SERVER_CREATED", "SERVER_JOINED" -> {
-                                        servers.add(json.getJSONObject("server"))
-                                        activity?.runOnUiThread {
-                                            recyclerView.adapter!!.notifyItemInserted(servers.size)
-                                        }
-                                    }
-
-                                    "SERVER_DELETED" -> {
-                                        val id = json.getJSONObject("server").getString("id")
-                                        activity?.runOnUiThread {
-                                            servers.forEachIndexed { index, server ->
-                                                if (server.getString("id") == id)
-                                                    recyclerView.adapter!!.notifyItemRemoved(index)
-                                            }
-                                            servers.removeIf { server -> server.getString("id") == id }
-                                        }
-                                    }
-                                }
-                                delay(500)
-                            }
-                            delay(100)
-                        }
-                        channel.cancel()
-                    }
-                    it.cancel()
-                    return@execute
-                }
+        KDispatcher.subscribe<JSONObject>("SERVER_CREATED") {
+            val json = it.data!!
+            servers.add(json.getJSONObject("server"))
+            recyclerView.adapter!!.notifyItemInserted(servers.size)
+        }
+        KDispatcher.subscribe<JSONObject>("SERVER_JOINED") {
+            val json = it.data!!
+            servers.add(json.getJSONObject("server"))
+            activity?.runOnUiThread {
+                recyclerView.adapter!!.notifyItemInserted(servers.size)
             }
         }
-        ConnectionManager.attach("server", sseCon)
+
+        KDispatcher.subscribe<JSONObject>("SERVER_DELETED") {
+            val json = it.data!!
+            val id = json.getJSONObject("server").getString("id")
+            activity?.runOnUiThread {
+                servers.forEachIndexed { index, server ->
+                    if (server.getString("id") == id)
+                        recyclerView.adapter!!.notifyItemRemoved(index)
+                }
+                servers.removeIf { server -> server.getString("id") == id }
+            }
+        }
+
     }
 
     private fun getServers(): MutableList<JSONObject> {
@@ -172,7 +131,6 @@ class ServersFragment : Fragment() {
                 .into(holder.avatarView)
 
             holder.itemView.setOnClickListener {
-                ConnectionManager.detach("server")
                 navController.navigate(
                     R.id.action_serversFragment_to_channelsFragment,
                     Bundle().apply { putString("serverId", server.getString("id")) }
