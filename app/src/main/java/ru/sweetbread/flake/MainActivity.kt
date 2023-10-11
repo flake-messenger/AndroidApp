@@ -10,6 +10,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.rasalexman.kdispatcher.KDispatcher
 import com.rasalexman.kdispatcher.call
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.headers
@@ -31,6 +32,13 @@ lateinit var token: String
 val client = HttpClient {
     install(HttpTimeout) {
         socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+    }
+    install(HttpRequestRetry) {
+        retryOnServerErrors(maxRetries = 5)
+        exponentialDelay()
+        modifyRequest { request ->
+            request.headers.append("x-retry-count", retryCount.toString())
+        }
     }
 }
 
