@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
 import com.google.android.material.appbar.MaterialToolbar
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.Job
 
@@ -17,6 +18,13 @@ lateinit var token: String
 val client = HttpClient {
     install(HttpTimeout) {
         socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+    }
+    install(HttpRequestRetry) {
+        retryOnServerErrors(maxRetries = 5)
+        exponentialDelay()
+        modifyRequest { request ->
+            request.headers.append("x-retry-count", retryCount.toString())
+        }
     }
 }
 
