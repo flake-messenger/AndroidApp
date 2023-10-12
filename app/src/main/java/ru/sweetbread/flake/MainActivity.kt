@@ -77,6 +77,7 @@ class MainActivity : AppCompatActivity() {
                     if (it.status != HttpStatusCode.OK) {
                         delay(5000)
                     } else {
+                        KDispatcher.call("SSE_STARTED")
                         val channel = it.bodyAsChannel()
                         while (!channel.isClosedForRead) {
                             if (channel.availableForRead > 0) {
@@ -94,6 +95,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     return@execute
                 }
+                KDispatcher.call("SSE_FINISHED")
             }
         }
     }

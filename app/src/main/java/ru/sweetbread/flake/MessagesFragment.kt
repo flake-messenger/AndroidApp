@@ -1,6 +1,7 @@
 package ru.sweetbread.flake
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -69,6 +70,19 @@ class MessagesFragment : Fragment() {
             adapter = MessagesRecyclerAdapter(messages)
         }
 
+        KDispatcher.subscribe<Unit>("SSE_STARTED") {
+            Log.i("Meow", "Before: ${messages[0]}")
+            activity?.let {
+                it.runOnUiThread {
+                    messages = getMessages(channelId)
+                    Log.i("Meow", "In:     ${messages[0]}")
+                    mesList.adapter = MessagesRecyclerAdapter(messages)
+                }
+            } ?:  Log.d("Meow", "Activity!")
+
+//            KDispatcher.unsubscribe<Unit>("SSE_STARTED")
+        }
+
         val sendButton = view.findViewById<Button>(R.id.send_button)
         val messageInput = view.findViewById<TextInputEditText>(R.id.message_input)
         messageInput.doAfterTextChanged { sendButton.isEnabled = it!!.isNotEmpty() }
@@ -98,14 +112,18 @@ class MessagesFragment : Fragment() {
                     if (request.status == HttpStatusCode.OK) {
                         activity?.runOnUiThread {
                             val pos = messages.indexOf(message)
-                            messages.remove(message)
-                            mesList.adapter!!.notifyItemRemoved(pos)
+                            if (pos != -1) {
+                                messages.remove(message)
+                                mesList.adapter!!.notifyItemRemoved(pos)
+                            }
                         }
                     } else {
                         activity?.runOnUiThread {
                             val pos = messages.indexOf(message)
-                            message.put("id", "-1")
-                            mesList.adapter!!.notifyItemChanged(pos)
+                            if (pos != -1) {
+                                message.put("id", "-1")
+                                mesList.adapter!!.notifyItemChanged(pos)
+                            }
                         }
                     }
                 }
