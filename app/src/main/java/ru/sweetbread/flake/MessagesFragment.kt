@@ -2,10 +2,12 @@ package ru.sweetbread.flake
 
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -188,17 +190,12 @@ class MessagesRecyclerAdapter(private val messages: MutableList<JSONObject>) : R
         val nicknameView: TextView = itemView.findViewById(R.id.author_name_view)
         val messageView: TextView = itemView.findViewById(R.id.message_view)
         val context = itemView.context!!
+        val back: LinearLayout = itemView.findViewById(R.id.back)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val view = when (viewType) {
-            -1 -> R.layout.recyclerview_error_message
-            0 -> R.layout.recyclerview_my_message
-            1 -> R.layout.recyclerview_processing_message
-            else -> R.layout.recyclerview_message
-        }
         val itemView = LayoutInflater.from(parent.context)
-            .inflate(view, parent, false)
+            .inflate(R.layout.recyclerview_message, parent, false)
         return MyViewHolder(itemView)
     }
 
@@ -224,6 +221,18 @@ class MessagesRecyclerAdapter(private val messages: MutableList<JSONObject>) : R
         holder.timeView.text = date
         holder.nicknameView.text = message.getJSONObject("author").getString("username")
         holder.messageView.text = message.getString("content")
+
+        val colorId = when (getItemViewType(position)) {
+            2 -> R.attr.colorSurfaceVariant
+            0 -> R.attr.colorPrimaryContainer
+            1 -> R.attr.colorTertiaryContainer
+            else -> R.attr.colorErrorContainer
+        }
+
+        val tp = TypedValue()
+        holder.context.theme.resolveAttribute(colorId, tp, true)
+        holder.back.setBackgroundColor(holder.context.getColor(tp.resourceId))
+
         holder.itemView.setOnLongClickListener {
             //Log.d("Meow", message.getString("id"))
             true
