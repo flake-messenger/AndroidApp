@@ -6,11 +6,13 @@ import android.util.DisplayMetrics
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.rasalexman.kdispatcher.KDispatcher
 import com.rasalexman.kdispatcher.call
+import com.rasalexman.kdispatcher.subscribe
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
@@ -59,10 +61,24 @@ class MainActivity : AppCompatActivity() {
 
                     NavHost(navController = navController, startDestination = "servers") {
                         composable("servers") {
-                            Servers(
-                                { getServers() },
-                                { id: String -> navController.navigate("servers/$id") }
-                            )
+                            val servers = remember { getServers() }
+
+                            KDispatcher.subscribe<JSONObject>("SERVER_CREATED") {
+                                val json = it.data!!
+                                servers.add(json.getJSONObject("server"))
+                            }
+                            KDispatcher.subscribe<JSONObject>("SERVER_JOINED") {
+                                val json = it.data!!
+                                servers.add(json.getJSONObject("server"))
+                            }
+
+                            KDispatcher.subscribe<JSONObject>("SERVER_DELETED") {
+                                val json = it.data!!
+                                val id = json.getJSONObject("server").getString("id")
+                                servers.removeIf { server -> server.getString("id") == id }
+                            }
+
+                            Servers(navController, servers)
                         }
                     }
                 }

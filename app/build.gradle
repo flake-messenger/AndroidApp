@@ -75,6 +75,7 @@ dependencies {
 
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
     implementation 'com.squareup.picasso:picasso:2.8'
+    implementation "io.coil-kt:coil-compose:2.4.0"
 
     implementation "com.louiscad.splitties:splitties-fun-pack-android-base-with-views-dsl:3.0.0"
 

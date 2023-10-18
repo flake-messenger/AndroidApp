@@ -8,8 +8,7 @@
     <fragment
         android:id="@+id/serversFragment"
         android:name="ru.sweetbread.flake.ServersFragment"
-        android:label="fragment_server_list"
-        tools:layout="@layout/fragment_servers" >
+        android:label="fragment_server_list" >
         <action
             android:id="@+id/action_serversFragment_to_channelsFragment"
             app:destination="@id/channelsFragment"
