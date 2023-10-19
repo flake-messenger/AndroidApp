@@ -3,10 +3,12 @@ package ru.sweetbread.flake
 import android.content.res.Resources.getSystem
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.view.View
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentContainerView
-import com.google.android.material.appbar.MaterialToolbar
+import androidx.compose.material3.Surface
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.rasalexman.kdispatcher.KDispatcher
 import com.rasalexman.kdispatcher.call
 import io.ktor.client.HttpClient
@@ -25,6 +27,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import ru.sweetbread.flake.ui.theme.FlakeTheme
 
 
 const val baseurl = "https://flake.coders-squad.com/api/v1"
@@ -42,27 +45,38 @@ val client = HttpClient {
     }
 }
 
-val elements = HashMap<String, View>()
 var onePanelMode: Boolean = true
 
 class MainActivity : AppCompatActivity() {
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        setContent {
+            FlakeTheme {
+                Surface {
+                    val navController = rememberNavController()
+
+                    NavHost(navController = navController, startDestination = "servers") {
+                        composable("servers") {
+                            Servers(
+                                { getServers() },
+                                { id: String -> navController.navigate("servers/$id") }
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
         token = getSharedPreferences("Account", 0).getString("token", null)!!
-
-        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
         val displayMetrics = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(displayMetrics)
         val width = displayMetrics.widthPixels / getSystem().displayMetrics.density
 
         onePanelMode = (width < 600)
-        if (onePanelMode) {findViewById<FragmentContainerView>(R.id.msgContainer).visibility = View.GONE}
+//        if (onePanelMode) {findViewById<FragmentContainerView>(R.id.msgContainer).visibility = View.GONE}
 
         GlobalScope.launch(Dispatchers.Default) {
             val request = client.prepareGet("$baseurl/dev/sse") {
