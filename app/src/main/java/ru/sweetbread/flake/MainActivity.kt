@@ -80,6 +80,13 @@ class MainActivity : AppCompatActivity() {
 
                             Servers(navController, servers)
                         }
+
+                        composable("servers/{serverId}/channels") { backStackEntry ->
+                            val hierarchy = remember { getHierarchy(backStackEntry.arguments?.getString("serverId")!!) }
+                            Channels(navController, hierarchy)
+                        }
+
+                        composable("channels/{channelId}/messages") {}
                     }
                 }
             }
