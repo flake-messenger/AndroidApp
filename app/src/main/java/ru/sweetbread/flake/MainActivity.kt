@@ -3,10 +3,22 @@ package ru.sweetbread.flake
 import android.content.res.Resources.getSystem
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -58,32 +70,68 @@ class MainActivity : AppCompatActivity() {
             FlakeTheme {
                 Surface {
                     val navController = rememberNavController()
+                    val scope = rememberCoroutineScope()
 
                     NavHost(navController = navController, startDestination = "servers") {
                         composable("servers") {
-                            val servers = remember { getServers() }
+                            val servers = remember { mutableListOf<JSONObject>() }
+                            var loaded by remember { mutableStateOf(false) }
 
-                            KDispatcher.subscribe<JSONObject>("SERVER_CREATED") {
-                                val json = it.data!!
-                                servers.add(json.getJSONObject("server"))
+                            if (loaded) {
+                                KDispatcher.subscribe<JSONObject>("SERVER_CREATED") {
+                                    val json = it.data!!
+                                    servers.add(json.getJSONObject("server"))
+                                }
+                                KDispatcher.subscribe<JSONObject>("SERVER_JOINED") {
+                                    val json = it.data!!
+                                    servers.add(json.getJSONObject("server"))
+                                }
+                                KDispatcher.subscribe<JSONObject>("SERVER_DELETED") {
+                                    val json = it.data!!
+                                    val id = json.getJSONObject("server").getString("id")
+                                    servers.removeIf { server -> server.getString("id") == id }
+                                }
+                                Log.d("Meow", servers.toString())
+                                Servers(navController, servers)
+                            } else {
+                                LinearProgressIndicator(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    trackColor = MaterialTheme.colorScheme.secondary,
+                                )
+                                LaunchedEffect(true) {
+                                    scope.launch(Dispatchers.IO) {
+                                        servers.addAll(getServers())
+                                        loaded = true
+                                    }
+                                }
                             }
-                            KDispatcher.subscribe<JSONObject>("SERVER_JOINED") {
-                                val json = it.data!!
-                                servers.add(json.getJSONObject("server"))
-                            }
-
-                            KDispatcher.subscribe<JSONObject>("SERVER_DELETED") {
-                                val json = it.data!!
-                                val id = json.getJSONObject("server").getString("id")
-                                servers.removeIf { server -> server.getString("id") == id }
-                            }
-
-                            Servers(navController, servers)
                         }
 
                         composable("servers/{serverId}/channels") { backStackEntry ->
-                            val hierarchy = remember { getHierarchy(backStackEntry.arguments?.getString("serverId")!!) }
-                            Channels(navController, hierarchy)
+                            val hierarchy = remember { mutableListOf<JSONObject>() }
+                            var loaded by remember { mutableStateOf(false) }
+
+                            if (loaded) {
+                                Channels(navController, hierarchy)
+                            } else {
+                                LinearProgressIndicator(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    trackColor = MaterialTheme.colorScheme.secondary,
+                                )
+                                LaunchedEffect(!loaded) {
+                                    scope.launch(Dispatchers.IO) {
+                                        hierarchy.addAll(getHierarchy(backStackEntry.arguments?.getString("serverId")!!))
+                                        Log.d("Meow!", hierarchy.toString())
+                                        loaded = true
+                                    }
+                                }
+                            }
                         }
 
                         composable("channels/{channelId}/messages") {}

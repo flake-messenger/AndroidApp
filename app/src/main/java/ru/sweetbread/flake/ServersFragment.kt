@@ -1,5 +1,6 @@
 package ru.sweetbread.flake
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -28,20 +29,18 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 
 
-fun getServers(): MutableList<JSONObject> {
+suspend fun getServers(): MutableList<JSONObject> {
     val servers = mutableListOf<JSONObject>()
-    runBlocking {
-        val response =
-            client.get("$baseurl/dev/servers")
-            { headers { bearerAuth(token) } }
-        if (response.status == HttpStatusCode.OK) {
-            servers.addAll(JSONArray(response.bodyAsText()).toArrayList().toMutableList())
-        }
+    val response =
+        client.get("$baseurl/dev/servers")
+        { headers { bearerAuth(token) } }
+    if (response.status == HttpStatusCode.OK) {
+        servers.addAll(JSONArray(response.bodyAsText()).toArrayList().toMutableList())
+        Log.d("Meow", "Loaded")
     }
     return servers
 }

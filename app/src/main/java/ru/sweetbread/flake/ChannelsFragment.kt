@@ -32,7 +32,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 @OptIn(DelicateCoroutinesApi::class)
-fun getHierarchy(serverId: String): MutableList<JSONObject> {
+suspend fun getHierarchy(serverId: String): MutableList<JSONObject> {
     lateinit var channels: MutableList<JSONObject>
     lateinit var categories: MutableList<JSONObject>
     val hierarchy = mutableListOf<JSONObject>()
@@ -56,30 +56,28 @@ fun getHierarchy(serverId: String): MutableList<JSONObject> {
         }
     }
 
-    GlobalScope.launch(Dispatchers.Default) {
-        hierarchy.clear()
+    hierarchy.clear()
 
-        while (!channelsCon.isCompleted) {
-            delay(50)
-        }
-        channels.forEach {
-            hierarchy.add(
-                JSONObject()
-                    .put("type", "channel")
-                    .put("channel", it)
-            )
-        }
+    while (!channelsCon.isCompleted) {
+        delay(50)
+    }
+    channels.forEach {
+        hierarchy.add(
+            JSONObject()
+                .put("type", "channel")
+                .put("channel", it)
+        )
+    }
 
-        while (!categoriesCon.isCompleted) {
-            delay(50)
-        }
-        categories.forEach {
-            hierarchy.add(
-                JSONObject()
-                    .put("type", "category")
-                    .put("category", it)
-            )
-        }
+    while (!categoriesCon.isCompleted) {
+        delay(50)
+    }
+    categories.forEach {
+        hierarchy.add(
+            JSONObject()
+                .put("type", "category")
+                .put("category", it)
+        )
     }
     return hierarchy
 }
