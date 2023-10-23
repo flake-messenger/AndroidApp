@@ -1,0 +1,65 @@
+name: Flake Android App Build
+run-name: ${{ gitea.actor }} is building Flake for Android
+on:
+  push:
+    tags: [ 'v*' ]
+
+jobs:
+  Building APK:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+        with:
+          ref:
+            beta
+
+      - name:  Setup Go
+        uses: https://github.com/actions/setup-go@v4
+        with:
+          go-version: '>=1.20.1'
+
+      - name: Setup Java
+        uses: https://github.com/actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install Android SDK
+        run: |
+          export tmpd=${{ gitea.workspace }}/ASDK
+          mkdir $tmpd; cd $tmpd
+          wget --output-document cmd-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+          unzip cmd-tools.zip
+          export ANDROID_HOME=$tmpd/cmdline-tools/bin
+          (yes || true) | $ANDROID_HOME/sdkmanager --licenses --sdk_root=$ANDROID_HOME; exit 0
+
+      - name: Building
+        run: |
+          export tmpd=${{ gitea.workspace }}/ASDK
+          export ANDROID_HOME=$tmpd/cmdline-tools/bin
+          
+          cd ${{ gitea.workspace }} 
+          chmod a+x gradlew
+          ls -al
+          ./gradlew assembleRelease
+
+      - name: Signing
+        run: |
+          export tmpd=${{ gitea.workspace }}/ASDK
+          export ANDROID_HOME=$tmpd/cmdline-tools/bin
+          export APK_TOOLS=$ANDROID_HOME/build-tools/33.0.1
+          
+          cd app/build/outputs/apk/release
+          echo "${{ secrets.KEYSTORE_ASC }}" > keystore.jks.asc
+          gpg -d --passphrase "${{ secrets.KEYSTORE_ASC_PASSWORD }}" --batch keystore.jks.asc > keystore.jks
+          
+          $APK_TOOLS/zipalign -v -p 4 app-release-unsigned.apk app-release-unsigned-aligned.apk
+          $APK_TOOLS/apksigner sign -ks keystore.jks --ks-pass pass:'${{ secrets.KEYSTORE_PASSWORD }}' --out Flake.apk app-release-unsigned-aligned.apk
+
+      - name: Make release
+        id: use-go-action
+        uses: https://gitea.com/actions/release-action@main
+        with:
+          files: app/build/outputs/apk/release/Flake.apk
+          api_key: '${{secrets.RELEASE_TOKEN}}'
